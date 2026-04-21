@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="hero-block">
+    <div>
+        <h1 style="margin-bottom:0.35rem;">PrecisionTox phenotype dashboard</h1>
+        <p class="page-subtitle">
+            Overview of phenotype data coverage across organisms, endpoints and chemicals.
+        </p>
+    </div>
+
+    <div class="quick-links">
+        <a class="quick-link-card" href="/experiments/">
+            <div class="quick-link-title">Experiments</div>
+            <div class="quick-link-text">Browse experiment metadata, conditions and batch-level summaries.</div>
+        </a>
+        <a class="quick-link-card" href="/explore/">
+            <div class="quick-link-title">Explore Endpoints</div>
+            <div class="quick-link-text">Inspect endpoint distributions, dose–response curves and raw records.</div>
+        </a>
+        <a class="quick-link-card" href="/compare/">
+            <div class="quick-link-title">Compare Endpoints</div>
+            <div class="quick-link-text">Compare chemicals across endpoints with clustered heatmaps.</div>
+        </a>
+        <!-- <a class="quick-link-card" href="/endpoints/">
+            <div class="quick-link-title">Endpoints</div>
+            <div class="quick-link-text">View endpoint categories, endpoint metadata and ontology information.</div>
+        </a> -->
+    </div>
+</div>
+
+<h2>Data overview</h2>
+<div class="cards cards-home">
+    <div class="card card-accent-blue">
+        <div class="card-label">Exposure Experiments</div>
+        <div class="card-value">{{ "{:,}".format(summary.n_experiments) }}</div>
+    </div>
+    <div class="card card-accent-blue">
+        <div class="card-label">Exposure Conditions</div>
+        <div class="card-value">{{ "{:,}".format(summary.n_conditions) }}</div>
+    </div>
+    <div class="card card-accent-blue">
+        <div class="card-label">Phenotype records</div>
+        <div class="card-value">{{ "{:,}".format(summary.n_records) }}</div>
+    </div>
+    <div class="card card-accent-amber">
+        <div class="card-label">Phenotypic Endpoints</div>
+        <div class="card-value">{{ "{:,}".format(summary.n_effects) }}</div>
+    </div>
+    <div class="card card-accent-green">
+        <div class="card-label">Organisms covered</div>
+        <div class="card-value">{{ "{:,}".format(summary.n_organisms) }}</div>
+    </div>
+    <div class="card card-accent-green">
+        <div class="card-label">Chemicals covered</div>
+        <div class="card-value">{{ "{:,}".format(summary.n_chemicals) }}</div>
+    </div>
+</div>
+
+<div class="section-card">
+    <div class="section-card-header">
+        <h2>Data composition</h2>
+        <p class="section-note">
+            Summary of condition and experiment composition in the phenotype dataset.
+        </p>
+    </div>
+
+    <div class="cards">
+        <div class="card">
+            <div class="card-label">Control conditions</div>
+            <div class="card-value">{{ "{:,}".format(control_summary.n_control_conditions) }}</div>
+        </div>
+        <div class="card">
+            <div class="card-label">Treatment conditions</div>
+            <div class="card-value">{{ "{:,}".format(control_summary.n_treatment_conditions) }}</div>
+        </div>
+        <div class="card">
+            <div class="card-label">Aggregated experiments</div>
+            <div class="card-value">{{ "{:,}".format(aggregated_summary.n_aggregated_experiments) }}</div>
+        </div>
+        <div class="card">
+            <div class="card-label">Non-aggregated experiments</div>
+            <div class="card-value">{{ "{:,}".format(aggregated_summary.n_non_aggregated_experiments) }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="section-card">
+    <div class="section-card-header">
+        <h2>Coverage by organism</h2>
+        <p class="section-note">
+            Restricted to organisms represented in phenotype experiments.
+        </p>
+    </div>
+
+    <div class="chart-row">
+        <div id="chemicals_by_organism" class="chart-box chart-box-small"></div>
+        <div id="effects_by_organism" class="chart-box chart-box-small"></div>
+        <div id="experiments_by_organism" class="chart-box chart-box-small"></div>
+    </div>
+</div>
+
+<div class="section-card">
+    <div class="section-card-header">
+        <h2>Endpoint categories by organism</h2>
+        <p class="section-note">
+            Endpoint category counts across organisms present in phenotype experiments.
+        </p>
+    </div>
+
+    <div id="effect_types_by_organism" class="chart-box"></div>
+</div>
+
+<div class="section-card">
+    <div class="section-card-header">
+        <h2>Detailed coverage by partner and biosystem</h2>
+        <p class="section-note">
+            Filter and sort the table to inspect coverage by partner, organism, biosystem and endpoint category.
+        </p>
+    </div>
+
+    <div class="filters">
+        <label>
+            Partner ID
+            <input type="text" id="filter-partner" placeholder="Filter partner">
+        </label>
+        <label>
+            Organism
+            <input type="text" id="filter-organism" placeholder="Filter organism">
+        </label>
+        <label>
+            Endpoint category
+            <input type="text" id="filter-effect-type" placeholder="Filter endpoint category">
+        </label>
+    </div>
+
+    <div class="table-wrap">
+        <table id="partner-effect-table">
+            <thead>
+                <tr>
+                    <th data-sort="string">Partner ID</th>
+                    <th data-sort="string">Organism</th>
+                    <th data-sort="string">Category</th>
+                    <th data-sort="string">Description</th>
+                    <th data-sort="number"># Endpoints</th>
+                    <th data-sort="number"># Chemicals</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in partner_effect_table %}
+                <tr>
+                    <td>{{ row.partner_id }}</td>
+                    <td>{{ row.scientific_name }}</td>
+                    <td>{{ row.effect_type }}</td>
+                    <td>{{ row.effect_type_description }}</td>
+                    <td>{{ row.n_endpoints }}</td>
+                    <td>{{ row.n_chemicals }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script>
+    const organismOverview = {{ organism_overview | tojson }};
+    const organismEffectType = {{ organism_effect_type | tojson }};
+
+    const organismLabels = organismOverview.map(d =>
+        d.common_name ? `${d.common_name} (${d.scientific_name})` : d.scientific_name
+    );
+
+    const nChemicals = organismOverview.map(d => d.n_chemicals);
+    const nEndpoints = organismOverview.map(d => d.n_endpoints);
+    const nExperiments = organismOverview.map(d => d.n_experiments);
+
+    Plotly.newPlot("chemicals_by_organism", [{
+        x: organismLabels,
+        y: nChemicals,
+        type: "bar"
+    }], {
+        title: "Chemicals",
+        xaxis: { title: "Organism", automargin: true, tickangle: -35 },
+        yaxis: { title: "Count" },
+        margin: { l: 55, r: 10, t: 40, b: 120 }
+    }, { responsive: true });
+
+    Plotly.newPlot("effects_by_organism", [{
+        x: organismLabels,
+        y: nEndpoints,
+        type: "bar"
+    }], {
+        title: "Endpoints",
+        xaxis: { title: "Organism", automargin: true, tickangle: -35 },
+        yaxis: { title: "Count" },
+        margin: { l: 55, r: 10, t: 40, b: 120 }
+    }, { responsive: true });
+
+    Plotly.newPlot("experiments_by_organism", [{
+        x: organismLabels,
+        y: nExperiments,
+        type: "bar"
+    }], {
+        title: "Experiments",
+        xaxis: { title: "Organism", automargin: true, tickangle: -35 },
+        yaxis: { title: "Count" },
+        margin: { l: 55, r: 10, t: 40, b: 120 }
+    }, { responsive: true });
+
+    const organismTypeLabels = [...new Set(
+        organismEffectType.map(d => d.common_name || d.scientific_name)
+    )];
+
+    const organismEndpointTypes = [...new Set(
+        organismEffectType.map(d => d.effect_type)
+    )];
+
+    const effectTypeTraces = organismEndpointTypes.map(effectType => {
+        const values = organismTypeLabels.map(label => {
+            const row = organismEffectType.find(d => {
+                const rowLabel = d.common_name || d.scientific_name;
+                return rowLabel === label && d.effect_type === effectType;
+            });
+            return row ? row.n_endpoints : 0;
+        });
+
+        return {
+            x: organismTypeLabels,
+            y: values,
+            type: "bar",
+            name: effectType
+        };
+    });
+
+    Plotly.newPlot("effect_types_by_organism", effectTypeTraces, {
+        title: "Endpoint categories",
+        barmode: "group",
+        xaxis: { title: "Organism", automargin: true, tickangle: -35 },
+        yaxis: { title: "Number of endpoints" },
+        margin: { l: 60, r: 20, t: 50, b: 140 }
+    }, { responsive: true });
+
+    const table = document.getElementById("partner-effect-table");
+    const tbody = table.querySelector("tbody");
+    const headers = table.querySelectorAll("th");
+
+    function applyFilters() {
+        const partner = document.getElementById("filter-partner").value.toLowerCase();
+        const organism = document.getElementById("filter-organism").value.toLowerCase();
+        const biosystem = document.getElementById("filter-biosystem").value.toLowerCase();
+        const effectType = document.getElementById("filter-effect-type").value.toLowerCase();
+
+        Array.from(tbody.rows).forEach(row => {
+            const cells = row.cells;
+            const show =
+                cells[0].innerText.toLowerCase().includes(partner) &&
+                cells[1].innerText.toLowerCase().includes(organism) &&
+                cells[2].innerText.toLowerCase().includes(biosystem) &&
+                cells[3].innerText.toLowerCase().includes(effectType);
+
+            row.style.display = show ? "" : "none";
+        });
+    }
+
+    document.getElementById("filter-partner").addEventListener("input", applyFilters);
+    document.getElementById("filter-organism").addEventListener("input", applyFilters);
+    document.getElementById("filter-biosystem").addEventListener("input", applyFilters);
+    document.getElementById("filter-effect-type").addEventListener("input", applyFilters);
+
+    headers.forEach((header, index) => {
+        let ascending = true;
+        header.style.cursor = "pointer";
+
+        header.addEventListener("click", () => {
+            const rows = Array.from(tbody.rows);
+
+            rows.sort((a, b) => {
+                const aText = a.cells[index].innerText.trim();
+                const bText = b.cells[index].innerText.trim();
+                const sortType = header.dataset.sort;
+
+                let comparison = 0;
+
+                if (sortType === "number") {
+                    comparison = Number(aText) - Number(bText);
+                } else {
+                    comparison = aText.localeCompare(bText);
+                }
+
+                return ascending ? comparison : -comparison;
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+            ascending = !ascending;
+        });
+    });
+</script>
+{% endblock %}

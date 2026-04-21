@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>PrecisionTox Phenotype</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2rem auto;
+            max-width: 1500px;
+            padding: 0 1rem;
+            color: #222;
+        }
+    
+        nav {
+            margin-bottom: 1rem;
+        }
+    
+        nav a {
+            margin-right: 1rem;
+            text-decoration: none;
+            color: #1f4b99;
+            font-weight: 600;
+        }
+    
+        h1, h2 {
+            margin-top: 1.5rem;
+        }
+    
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0 1.5rem 0;
+        }
+    
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 1rem;
+            background: #fafafa;
+        }
+    
+        .card-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.4rem;
+        }
+    
+        .card-value {
+            font-size: 1.7rem;
+            font-weight: 700;
+        }
+    
+        .chart-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+    
+        .chart-box {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 0.5rem;
+            background: white;
+            min-height: 420px;
+            box-sizing: border-box;
+        }
+    
+        .chart-box-small {
+            min-height: 360px;
+        }
+    
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+    
+        .filters label {
+            display: flex;
+            flex-direction: column;
+            font-size: 0.95rem;
+            gap: 0.25rem;
+        }
+    
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+    
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            background: white;
+        }
+    
+        th, td {
+            border: 1px solid #ddd;
+            padding: 0.6rem;
+            text-align: left;
+            vertical-align: top;
+        }
+    
+        th {
+            background: #f2f2f2;
+        }
+
+        td.highlight {
+            font-weight: 600;
+            color: #004880;
+        }
+
+        #experiments-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        table.dataTable thead th.no-sort::before,
+        table.dataTable thead th.no-sort::after,
+        .dataTables_scrollHead table thead th.no-sort::before,
+        .dataTables_scrollHead table thead th.no-sort::after {
+            display: none !important;
+        }
+        
+        table.dataTable thead th.th-group-record,
+        .dataTables_scrollHead table thead th.th-group-record {
+            background: #1f4e79 !important;
+            color: white !important;
+        }
+
+        table.dataTable thead th.th-group-condition,
+        .dataTables_scrollHead table thead th.th-group-condition {
+            background: #2e75b6 !important;
+            color: white !important;
+        }
+
+        table.dataTable thead th.th-group-experiment,
+        .dataTables_scrollHead table thead th.th-group-experiment {
+            background: #5b9bd5 !important;
+            color: white !important;
+        }
+    
+        input, select, button {
+            padding: 0.35rem;
+        }
+    
+        .dataTables_wrapper {
+            margin-top: 1rem;
+        }
+    
+        table.dataTable thead th {
+            background: #004880;
+            color: white;
+            border-color: #e0e0e0;
+            font-weight: 500;
+            text-align: center;
+        }
+        table.dataTable tbody td {
+            white-space: nowrap;
+        }
+
+        .dt-right {
+            text-align: right;
+        }
+        
+        div.dt-buttons {
+            margin-bottom: 0.75rem;
+        }
+
+        button.dt-button,
+        div.dt-button,
+        a.dt-button {
+            background: linear-gradient(90deg, #004880, #007cc1) !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 4px !important;
+            padding: 0.4rem 0.8rem !important;
+        }
+    
+        @media (max-width: 1100px) {
+            .chart-row {
+                grid-template-columns: 1fr;
+            }
+            .dose-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .dose-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .info-sections {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            margin: 1rem 0 1.5rem 0;
+        }
+
+        .info-card {
+            border: 1px solid #dbe5ef;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #f9fbfd 0%, #f2f7fb 100%);
+            padding: 1rem 1.1rem;
+            box-shadow: 0 2px 8px rgba(0, 72, 128, 0.08);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(0, 72, 128, 0.12);
+        }
+
+        .info-card h3 {
+            margin: -1rem -1.1rem 0.9rem -1.1rem;
+            padding: 0.8rem 1.1rem 0.7rem 1.1rem;
+            font-size: 1rem;
+            font-weight: 700;
+            color: white;
+            border-radius: 14px 14px 0 0;
+            letter-spacing: 0.2px;
+        }
+
+        /* One color per panel */
+        .info-card:nth-child(1) h3 {
+            background: linear-gradient(90deg, #004880, #007cc1);
+        }
+
+        .info-card:nth-child(2) h3 {
+            background: linear-gradient(90deg, #1c6b3c, #2d9b57);
+        }
+
+        .info-card:nth-child(3) h3 {
+            background: linear-gradient(90deg, #7a4a00, #c47a00);
+        }
+
+        .info-content {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #243746;
+        }
+
+        .info-row {
+            margin-bottom: 0.55rem;
+            padding-bottom: 0.45rem;
+            border-bottom: 1px solid #e8eef5;
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .info-label {
+            display: inline-block;
+            min-width: 130px;
+            font-weight: 700;
+            color: #4e6478;
+        }
+
+        @media (max-width: 1100px) {
+            .info-sections {
+                grid-template-columns: 1fr;
+            }
+        }
+        .page-subtitle {
+            margin-top: 0;
+            color: #5f7386;
+            font-size: 1rem;
+            line-height: 1.45;
+        }
+
+        .hero-block {
+            margin-bottom: 1.5rem;
+        }
+
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .quick-link-card {
+            display: block;
+            text-decoration: none;
+            border: 1px solid #dbe5ef;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #f9fbfd 0%, #f2f7fb 100%);
+            padding: 1rem;
+            color: #243746;
+            box-shadow: 0 2px 8px rgba(0, 72, 128, 0.08);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .quick-link-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(0, 72, 128, 0.12);
+        }
+
+        .quick-link-title {
+            font-weight: 700;
+            color: #004880;
+            margin-bottom: 0.35rem;
+        }
+
+        .quick-link-text {
+            font-size: 0.92rem;
+            color: #5f7386;
+            line-height: 1.45;
+        }
+
+        .cards-home .card {
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 72, 128, 0.08);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .cards-home .card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(0, 72, 128, 0.12);
+        }
+
+        .card-accent-blue {
+            border-top: 5px solid #007cc1;
+        }
+
+        .card-accent-green {
+            border-top: 5px solid #2d9b57;
+        }
+
+        .card-accent-amber {
+            border-top: 5px solid #c47a00;
+        }
+
+        .section-card {
+            border: 1px solid #dbe5ef;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%);
+            padding: 1rem 1rem 1.2rem 1rem;
+            margin: 1.2rem 0 1.5rem 0;
+            box-shadow: 0 2px 8px rgba(0, 72, 128, 0.06);
+        }
+
+        .section-card-header {
+            margin-bottom: 0.8rem;
+        }
+
+        .section-card-header h2 {
+            margin: 0 0 0.25rem 0;
+        }
+
+        .section-note {
+            margin: 0;
+            color: #5f7386;
+            font-size: 0.95rem;
+        }
+
+        #partner-effect-table thead th {
+            background: linear-gradient(90deg, #004880, #007cc1);
+            color: white;
+            border-color: #e0e0e0;
+            text-align: center;
+        }
+
+        #partner-effect-table tbody tr:nth-child(even) {
+            background: #f8fbfe;
+        }
+
+        #partner-effect-table tbody tr:hover {
+            background: #eef6fc;
+        }
+
+        @media (max-width: 1200px) {
+            .quick-links {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 800px) {
+            .quick-links {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/experiments/">Experiments</a>
+        <a href="/explore/">Explore Endpoints</a>
+        <a href="/compare/">Compare Endpoints</a>
+        <!-- <a href="/api/health">API health</a> -->
+        <a href="https://dex.precisiontox.org/downloads/phenotype/">Data Download</a>
+    </nav>
+    <hr>
+    {% block content %}{% endblock %}
+</body>
+</html>

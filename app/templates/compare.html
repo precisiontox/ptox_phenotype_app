@@ -1,0 +1,491 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Compare Endpoints</h1>
+<div>
+    <p>
+        Visualize and compare endpoint data for all chemicals at once.
+    </p>
+</div>
+
+<div class="section-card">
+    <div class="section-card-header">
+        <h2>Select an endpoint:</h2>
+    </div>
+    <div class="filters">
+        <label>
+            Organism
+            <select id="compare-organism-select">
+                <option value="">Select organism...</option>
+                {% for org in organisms %}
+                <option value="{{ org.organism_id }}">
+                    {% if org.common_name %}
+                        {{ org.common_name }} ({{ org.scientific_name }})
+                    {% else %}
+                        {{ org.scientific_name }}
+                    {% endif %}
+                </option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>
+            Endpoint category
+            <select id="compare-category-select" disabled>
+                <option value="">All endpoint categories</option>
+            </select>
+        </label>
+
+        <label>
+            Metric
+            <select id="compare-metric-select">
+                <option value="difference">Difference</option>
+                <option value="zscore">Z-score</option>
+            </select>
+        </label>
+    </div>
+
+    <div id="explore-info" class="info-sections">
+        <div class="info-card">
+            <h3>Organism</h3>
+            <div id="organism-info" class="info-content">Select an organism.</div>
+        </div>
+
+        <div class="info-card">
+            <h3>Endpoint category</h3>
+            <div id="category-info" class="info-content">Select an endpoint category.</div>
+        </div>
+    </div>
+</div>
+
+
+<div class="section-card">
+    <div class="section-card-header">
+        <h2>Heatmap</h2>
+        <p id="compare-metric-note" style="color:#4e6478; margin-top:0.5rem;">
+            <p id="compare-metric-note" style="color:#4e6478; margin-top:0.5rem;">
+                Difference = treatment mean − control mean where controls exist; otherwise treatment mean. Z-score is shown only where controls exist. 
+                Heatmap colors are normalized by endpoint so endpoints with different units and scales can be compared visually.
+                Chemicals are automatically clustered according to similarity across all current endpoints.
+            </p>
+        </p>
+    </div>
+    <div id="compare-heatmap" class="chart-box" style="min-height: 900px;"></div>
+</div>
+
+<div class="section-card">
+    <div class="section-card-header">
+        <h2>Database records</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
+            <div class="section-note" id="compare-table-note"></div>
+            <button id="compare-show-all-table-btn" type="button">Show everything</button>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table id="compare-table" class="display compact stripe" style="width:100%;">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Endpoint Category</th>
+                    <th>Endpoint</th>
+                    <th>Value</th>
+                    <th>Unit</th>
+                    <th>Control</th>
+                    <th>Chemical</th>
+                    <th>Concentration</th>
+                    <th>Duration</th>
+                    <th>Batch ID</th>
+                    <th>Partner</th>
+                    <th>Date</th>
+                    <th>Biosystem Code</th>
+                    <th>Organism</th>
+                    <th>Medium</th>
+                    <th>Format</th>
+                    <th>Aggregated</th>
+                    <th>Quality</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script>
+let compareTable = null;
+let compareTableShowAll = false;
+
+function compareSelections() {
+    return {
+        organism_id: document.getElementById("compare-organism-select").value,
+        effect_type: document.getElementById("compare-category-select").value,
+        metric: document.getElementById("compare-metric-select").value
+    };
+}
+
+function updateCompareUrl() {
+    const { organism_id, effect_type, metric } = compareSelections();
+    const params = new URLSearchParams();
+    if (organism_id) params.set("organism_id", organism_id);
+    if (effect_type) params.set("effect_type", effect_type);
+    if (metric) params.set("metric", metric);
+    window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
+}
+
+function applyCompareSelectionsFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const organism_id = params.get("organism_id") || "";
+    const effect_type = params.get("effect_type") || "";
+    const metric = params.get("metric") || "difference";
+
+    document.getElementById("compare-organism-select").value = organism_id;
+    document.getElementById("compare-metric-select").value = metric;
+
+    return { effect_type };
+}
+
+function getSelections() {
+    return {
+        organism_id: document.getElementById("compare-organism-select").value,
+        effect_type: document.getElementById("compare-category-select").value,
+    };
+}
+
+async function loadCompareOptions() {
+    const organism_id = document.getElementById("compare-organism-select").value;
+    const currentCategory = document.getElementById("compare-category-select").value;
+    const categorySelect = document.getElementById("compare-category-select");
+
+    if (!organism_id) {
+        categorySelect.innerHTML = '<option value="">All endpoint categories</option>';
+        categorySelect.disabled = true;
+        return;
+    }
+
+    const response = await fetch(`/api/compare/options?organism_id=${encodeURIComponent(organism_id)}`);
+    const data = await response.json();
+
+    categorySelect.innerHTML =
+        '<option value="">All endpoint categories</option>' +
+        data.categories.map(x => `<option value="${x.effect_type}">${x.effect_type}</option>`).join("");
+
+    categorySelect.disabled = false;
+
+    if ([...categorySelect.options].some(opt => opt.value === currentCategory)) {
+        categorySelect.value = currentCategory;
+    }
+}
+
+async function loadInfoPanels() {
+    const { organism_id, effect_type, endpoint_name } = getSelections();
+
+    const organismBox = document.getElementById("organism-info");
+    const categoryBox = document.getElementById("category-info");
+
+    if (!organism_id) {
+        organismBox.innerHTML = '<span style="color:#6b7c8d;">Select an organism.</span>';
+        categoryBox.innerHTML = '<span style="color:#6b7c8d;">Select an endpoint category.</span>';
+        return;
+    }
+
+    const params = new URLSearchParams({ organism_id });
+    if (effect_type) params.append("effect_type", effect_type);
+    if (endpoint_name) params.append("endpoint_name", endpoint_name);
+
+    const response = await fetch(`/api/explore/info?${params.toString()}`);
+    const data = await response.json();
+
+    if (data.organism) {
+        organismBox.innerHTML = `
+            <div class="info-row"><span class="info-label">Scientific name:</span><strong> ${data.organism.scientific_name || ""}</strong></div>
+            <div class="info-row"><span class="info-label">Biosystem code:</span> ${data.organism.biosystem_code || ""}</div>
+            <div class="info-row"><span class="info-label">UniProt acronym:</span> ${data.organism.uniprot_acronym || ""}</div>
+            <div class="info-row"><span class="info-label">NCBI tax ID:</span> ${data.organism.ncbi_tax_id || ""}</div>
+        `;
+    } else {
+        organismBox.innerHTML = "No organism information available.";
+    }
+
+    if (data.category) {
+        categoryBox.innerHTML = `
+            <div class="info-row"><span class="info-label">Category:</span><strong> ${data.category.effect_type || ""}</strong></div>
+            <div class="info-row"><span class="info-label">Description:</span> ${data.category.type_description || ""}</div>
+            <div class="info-row"><span class="info-label">Number of endpoints:</span> ${data.category.n_endpoints || 0}</div>
+        `;
+    } else {
+        categoryBox.innerHTML = "Select an endpoint category.";
+    }
+}
+
+async function loadCompareHeatmap() {
+    const { organism_id, effect_type, metric } = compareSelections();
+
+    if (!organism_id) {
+        Plotly.newPlot("compare-heatmap", [], {
+            title: "Select an organism",
+            xaxis: { visible: false },
+            yaxis: { visible: false }
+        }, { responsive: true });
+        return;
+    }
+
+    const params = new URLSearchParams({ organism_id, metric });
+    if (effect_type) params.append("effect_type", effect_type);
+
+    const response = await fetch(`/api/compare/heatmap?${params.toString()}`);
+
+    if (!response.ok) {
+        const text = await response.text();
+        console.error("Compare heatmap error:", response.status, text);
+        throw new Error(`Compare heatmap request failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.x.length || !data.y.length) {
+        Plotly.newPlot("compare-heatmap", [], {
+            title: "No data available for the selected filters",
+            xaxis: { visible: false },
+            yaxis: { visible: false }
+        }, { responsive: true });
+        return;
+    }
+
+    // Keep the raw values for hover
+    const rawZ = data.z.map(row => row.slice());
+
+    // Normalize by endpoint (column-wise z-score) for color display
+    const displayZ = data.z.map(row => row.slice());
+
+    const nRows = displayZ.length;
+    const nCols = displayZ[0].length;
+
+    for (let j = 0; j < nCols; j++) {
+        const vals = [];
+        for (let i = 0; i < nRows; i++) {
+            const v = displayZ[i][j];
+            if (v !== null && !Number.isNaN(v)) {
+                vals.push(v);
+            }
+        }
+
+        if (vals.length === 0) continue;
+
+        const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+        const variance = vals.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / vals.length;
+        const sd = Math.sqrt(variance);
+
+        for (let i = 0; i < nRows; i++) {
+            const v = displayZ[i][j];
+            if (v === null || Number.isNaN(v)) {
+                displayZ[i][j] = null;
+            } else if (sd === 0) {
+                displayZ[i][j] = 0;
+            } else {
+                displayZ[i][j] = (v - mean) / sd;
+            }
+        }
+    }
+
+    const titleMap = {
+        difference: "Chemical comparison heatmap — Difference",
+        zscore: "Chemical comparison heatmap — Z-score"
+    };
+
+    // Dynamic height so all chemicals are actually visible
+    const dynamicHeight = Math.max(900, data.y.length * 18);
+
+    Plotly.newPlot("compare-heatmap", [{
+        z: displayZ,
+        x: data.x,
+        y: data.y,
+        customdata: rawZ.map((row, i) =>
+            row.map((rawVal, j) => [
+                rawVal,
+                data.customdata[i][j][0],  // n_experiments
+                data.customdata[i][j][1],  // n_with_control
+                data.customdata[i][j][2]   // n_without_control
+            ])
+        ),
+        type: "heatmap",
+        hoverongaps: false,
+        hovertemplate:
+            "Chemical: %{y}<br>" +
+            "Endpoint: %{x}<br>" +
+            "Raw value: %{customdata[0]}<br>" +
+            "Displayed color value: %{z}<br>" +
+            "Experiments: %{customdata[1]}<br>" +
+            "With controls: %{customdata[2]}<br>" +
+            "Without controls: %{customdata[3]}<extra></extra>"
+    }], {
+        title: (titleMap[data.metric] || "Chemical comparison heatmap") + " (endpoint-normalized colors)",
+        height: dynamicHeight,
+        xaxis: {
+            title: "Endpoint",
+            automargin: true,
+            tickangle: -60,
+            tickfont: { size: 10 }
+        },
+        yaxis: {
+            title: "Chemical",
+            automargin: true,
+            tickmode: "array",
+            tickvals: data.y,
+            ticktext: data.y,
+            tickfont: { size: 10 }
+        },
+        margin: { l: 260, r: 30, t: 60, b: 260 }
+    }, { responsive: true });
+}
+
+async function loadCompareTable() {
+    const { organism_id, effect_type } = compareSelections();
+
+    if (!organism_id) {
+        if (compareTable) {
+            compareTable.destroy();
+            compareTable = null;
+        }
+        $('#compare-table tbody').empty();
+        document.getElementById("compare-table-note").textContent = "";
+        document.getElementById("compare-show-all-table-btn").style.display = "none";
+        return;
+    }
+
+    const params = new URLSearchParams({ organism_id });
+    if (effect_type) params.append("effect_type", effect_type);
+    if (compareTableShowAll) params.append("show_all", "1");
+
+    const response = await fetch(`/api/compare/table?${params.toString()}`);
+
+    if (!response.ok) {
+        const text = await response.text();
+        console.error("Compare heatmap error:", response.status, text);
+        throw new Error(`Compare heatmap request failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    const rows = data.rows.map(r => [
+        r.phenotype_record_id,
+        r.endpoint_category || "",
+        r.endpoint_display_name || r.endpoint_name || "",
+        r.effect_value || "",
+        r.endpoint_unit || "",
+        r.is_control,
+        r.full_ptx_code ? `[${r.full_ptx_code}] ${r.chemical_name}` : "",
+        r.exposure_concentration !== null
+            ? `${r.exposure_concentration} ${r.exposure_concentration_unit || ""}`.trim()
+            : "",
+        r.exposure_duration !== null
+            ? `${r.exposure_duration} ${r.exposure_duration_unit || ""}`.trim()
+            : "",
+        r.internal_experiment_batch_id || "",
+        r.partner_id || "",
+        r.experiment_date || "",
+        r.biosystem_code || "",
+        r.organism || "",
+        r.medium || "",
+        r.format_exposure || "",
+        r.aggregated_data,
+        r.quality_flag || ""
+    ]);
+
+    const note = document.getElementById("compare-table-note");
+    const showAllBtn = document.getElementById("compare-show-all-table-btn");
+
+    if (data.is_truncated) {
+        note.textContent = "Showing first 5000 records. Click 'Show everything' to load all matching rows.";
+        showAllBtn.style.display = "inline-block";
+    } else {
+        note.textContent = compareTableShowAll ? "Showing all matching records." : "";
+        showAllBtn.style.display = "none";
+    }
+
+    if (compareTable) {
+        compareTable.destroy();
+        compareTable = null;
+    }
+
+    $('#compare-table tbody').empty();
+
+    compareTable = $('#compare-table').DataTable({
+        data: rows,
+        pageLength: 25,
+        lengthMenu: [10, 25, 50, 100],
+        scrollX: true,
+        destroy: true,
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'csvHtml5',
+                text: 'Export CSV',
+                title: 'precisiontox_compare_records'
+            }
+        ],
+        columnDefs: [
+            { orderable: false, targets: 0, className: "no-sort" }
+        ]
+    });
+}
+
+async function refreshCompare() {
+    updateCompareUrl();
+    await loadInfoPanels();
+    await loadCompareHeatmap();
+    await loadCompareTable();
+}
+
+document.getElementById("compare-organism-select").addEventListener("change", async function() {
+    compareTableShowAll = false;
+    document.getElementById("compare-category-select").value = "";
+    await loadCompareOptions();
+    await refreshCompare();
+});
+
+document.getElementById("compare-category-select").addEventListener("change", async function() {
+    compareTableShowAll = false;
+    await refreshCompare();
+});
+
+document.getElementById("compare-metric-select").addEventListener("change", async function() {
+    await loadCompareHeatmap();
+    updateCompareUrl();
+});
+
+document.getElementById("compare-show-all-table-btn").addEventListener("click", async function() {
+    compareTableShowAll = true;
+    await loadCompareTable();
+});
+
+const initialCompareSelections = applyCompareSelectionsFromUrl();
+
+Plotly.newPlot("compare-heatmap", [], {
+    title: "Select an organism",
+    xaxis: { visible: false },
+    yaxis: { visible: false }
+}, { responsive: true });
+
+(async function initCompareFromUrl() {
+    if (document.getElementById("compare-organism-select").value) {
+        await loadCompareOptions();
+
+        if (initialCompareSelections.effect_type) {
+            document.getElementById("compare-category-select").value = initialCompareSelections.effect_type;
+        }
+
+        await refreshCompare();
+    }
+})();
+</script>
+{% endblock %}

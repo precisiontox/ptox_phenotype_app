@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Experiment Information</h1>
+
+<div>
+    <p>
+    This page provides a detailed overview of the experiments included in the PrecisionTox Phenotype dataset. 
+    The information is aggregated at the experiment batch level, which represents a set of experimental conditions tested together. 
+    Each batch may include multiple exposure conditions, chemicals, and phenotypic endpoints. 
+    Use the table below to explore the metadata of each experiment batch and filter by various attributes such as partner, organism, date, and more. 
+    </p>
+</div>
+
+<h2>Data overview</h2>
+<div class="cards cards-home">
+    <div class="card card-accent-blue">
+        <div class="card-label">Exposure Experiments</div>
+        <div class="card-value" id="card-n-experiments">{{ "{:,}".format(summary.n_experiments) }}</div>
+    </div>
+    <div class="card card-accent-blue">
+        <div class="card-label">Exposure Conditions</div>
+        <div class="card-value" id="card-n-conditions">{{ "{:,}".format(summary.n_conditions) }}</div>
+    </div>
+    <div class="card card-accent-blue">
+        <div class="card-label">Phenotype records</div>
+        <div class="card-value" id="card-n-records">{{ "{:,}".format(summary.n_records) }}</div>
+    </div>
+    <div class="card card-accent-amber">
+        <div class="card-label">Phenotypic Endpoints</div>
+        <div class="card-value" id="card-n-endpoints">{{ "{:,}".format(summary.n_effects) }}</div>
+    </div>
+    <div class="card card-accent-green">
+        <div class="card-label">Organisms covered</div>
+        <div class="card-value" id="card-n-organisms">{{ "{:,}".format(summary.n_organisms) }}</div>
+    </div>
+    <div class="card card-accent-green">
+        <div class="card-label">Chemicals covered</div>
+        <div class="card-value" id="card-n-chemicals">{{ "{:,}".format(summary.n_chemicals) }}</div>
+    </div>
+</div>
+
+<div class="section-card">
+    <div class="section-card-header">
+        <h2>Experiments overview</h2>
+        <p class="section-note">
+            Each row represents an experiment batch and their metadata. Use the search boxes in the header to filter experiments by partner, organism, strain, date, format or other fields.
+        </p>
+    </div>
+    {% if rows %}
+    <div class="table-wrap">
+        <table id="experiments-table" class="display compact stripe">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Partner</th>
+                    <th>Organism</th>
+                    <th>Strain</th>
+                    <th>Date</th>
+                    <th>Batch ID</th>
+                    <th>Format</th>
+                    <th>Medium</th>
+                    <th>Aggregated</th>
+                    <th>Quality</th>
+                    <th># Conditions</th>
+                    <th># Chemicals</th>
+                    <th># Controls</th>
+                    <th>Avg. Concentrations / Chemical</th>
+                    <th>Exposure durations</th>
+                    <th># Records</th>
+                    <th># Endpoints</th>
+                    <th>Chemical keys</th>
+                    <th>Endpoint keys</th>
+                </tr>
+                <tr>
+                    <th></th>
+                    <th><input type="text" placeholder="Filter"></th>
+                    <th><input type="text" placeholder="Filter"></th>
+                    <th><input type="text" placeholder="Filter"></th>
+                    <th></th>
+                    <th><input type="text" placeholder="Filter"></th>
+                    <th><input type="text" placeholder="Filter"></th>
+                    <th><input type="text" placeholder="Filter"></th>
+                    <th><input type="text" placeholder="Filter"></th>
+                    <th><input type="text" placeholder="Filter"></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th><input type="text" placeholder="Filter"></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td class="highlight">{{ row.partner_id }}</td>
+                    <td class="highlight">{{ row.organism}}</td>
+                    <td>{{ row.strain }}</td>
+                    <td>{{ row.experiment_date or '' }}</td>
+                    <td>{{ row.internal_experiment_batch_id or '' }}</td>
+                    <td>{{ row.format_exposure or '' }}</td>
+                    <td>{{ row.medium }}</td>
+                    <td>{{ row.aggregated_data }}</td>
+                    <td>{{ row.quality_flag or '' }}</td>
+                    <td>{{ row.n_conditions }}</td>
+                    <td>{{ row.n_chemicals }}</td>
+                    <td>{{ row.n_controls }}</td>
+                    <td>{{ row.avg_n_concentrations_per_chemical }}</td>
+                    <td>{{ row.exposure_durations or '' }}</td>
+                    <td>{{ row.n_records }}</td>
+                    <td>{{ row.n_endpoints }}</td>
+                    <td>{{ row.chemical_keys }}</td>
+                    <td>{{ row.endpoint_keys }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>No experiments found.</p>
+    {% endif %}
+</div>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script>
+function applyHeaderTooltips(api) {
+    const columnDescriptions = {{ columnDes| tojson }};
+    const visibleHeader = $(api.table().container()).find('.dataTables_scrollHead thead tr:first-child th');
+
+    visibleHeader.each(function() {
+        const headerText = $(this).text().trim();
+        if (columnDescriptions[headerText]) {
+            $(this).attr('title', columnDescriptions[headerText]);
+        }
+    });
+}
+
+$(document).ready(function() {
+    var table = $('#experiments-table').DataTable({
+        pageLength: 25,
+        lengthMenu: [10, 25, 50, 100],
+        order: [[4, 'desc']],
+        autoWidth: false,
+        scrollX: true,
+        dom: 'Bfrtip',
+        orderCellsTop: true,
+        buttons: [
+            {
+                extend: 'csvHtml5',
+                text: 'Export CSV',
+                title: 'precisiontox_experiments',
+                exportOptions: { columns: ':visible' }
+            }
+        ],
+        columnDefs: [
+            { orderable: false, targets: 0 },
+            { className: "dt-right", targets: [10,11,12,13,15,16] },
+            { visible: false, targets: [16,17,18] }
+        ],
+        initComplete: function () {
+            var api = this.api();
+
+            // Visible header when scrollX is enabled
+            var visibleHeader = $(api.table().container()).find('.dataTables_scrollHead thead');
+
+            // Prevent sorting when interacting with filter row
+            visibleHeader.find('tr:eq(1) th').on('click', function(e) {
+                e.stopPropagation();
+            });
+
+            visibleHeader.find('tr:eq(1) th input').on('click focus', function(e) {
+                e.stopPropagation();
+            });
+
+            // Column filters
+            visibleHeader.find('tr:eq(1) th input').on('keyup change', function(e) {
+                e.stopPropagation();
+                let colIndex = $(this).closest('th').index();
+                api.column(colIndex).search(this.value).draw();
+            });
+
+            // Apply tooltip descriptions
+            applyHeaderTooltips(api);
+        }
+    });
+    table.on('draw', function() {
+        updateSummaryCards(table);
+    });
+});
+
+function updateSummaryCards(api) {
+    let nExperiments = 0;
+    let nConditions = 0;
+    let nRecords = 0;
+    let organisms = new Set();
+    let chemicals = new Set();
+    let endpoints = new Set();
+
+    api.rows({ search: 'applied' }).every(function() {
+        const row = this.data();
+
+        nExperiments += 1;
+        organisms.add(row[2]);               // Organism
+        nConditions += Number(row[10]) || 0; // # Conditions
+        nRecords += Number(row[15]) || 0;    // # Records
+
+        const chemicalKeys = row[17] || "";
+        const endpointKeys = row[18] || "";
+
+        if (chemicalKeys) {
+            chemicalKeys.split("||").forEach(x => {
+                if (x) chemicals.add(x);
+            });
+        }
+
+        if (endpointKeys) {
+            endpointKeys.split("||").forEach(x => {
+                if (x) endpoints.add(x);
+            });
+        }
+    });
+
+    document.getElementById('card-n-experiments').textContent = nExperiments;
+    document.getElementById('card-n-conditions').textContent = nConditions;
+    document.getElementById('card-n-records').textContent = nRecords;
+    document.getElementById('card-n-endpoints').textContent = endpoints.size;
+    document.getElementById('card-n-organisms').textContent = organisms.size;
+    document.getElementById('card-n-chemicals').textContent = chemicals.size;
+}
+</script>
+{% endblock %}
