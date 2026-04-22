@@ -245,7 +245,7 @@ async function loadOptions() {
     if (currentCategory) params.append("effect_type", currentCategory);
     if (currentEndpoint) params.append("endpoint_name", currentEndpoint);
 
-    const response = await fetch(`/api/explore/options?${params.toString()}`);
+    const response = await fetch(`${window.APP_ROOT}/api/explore/options?${params.toString()}`);
     const data = await response.json();
 
     categorySelect.innerHTML =
@@ -296,7 +296,7 @@ async function loadInfoPanels() {
     if (effect_type) params.append("effect_type", effect_type);
     if (endpoint_name) params.append("endpoint_name", endpoint_name);
 
-    const response = await fetch(`/api/explore/info?${params.toString()}`);
+    const response = await fetch(`${window.APP_ROOT}/api/explore/info?${params.toString()}`);
     const data = await response.json();
 
     if (data.organism) {
@@ -347,7 +347,7 @@ async function loadHistogram() {
     }
 
     const params = new URLSearchParams({ organism_id, effect_type, endpoint_name });
-    const response = await fetch(`/api/explore/histogram?${params.toString()}`);
+    const response = await fetch(`${window.APP_ROOT}/api/explore/histogram?${params.toString()}`);
     const data = await response.json();
 
     const traces = [
@@ -421,7 +421,7 @@ async function loadRanking() {
     }
 
     const params = new URLSearchParams({ organism_id, effect_type, endpoint_name });
-    const response = await fetch(`/api/explore/ranking?${params.toString()}`);
+    const response = await fetch(`${window.APP_ROOT}/api/explore/ranking?${params.toString()}`);
     const data = await response.json();
 
     if (!data.rows.length) {
@@ -471,7 +471,7 @@ async function loadDoseResponse() {
     }
 
     const params = new URLSearchParams({ organism_id, effect_type, endpoint_name, ptx_code });
-    const response = await fetch(`/api/explore/dose_response?${params.toString()}`);
+    const response = await fetch(`${window.APP_ROOT}/api/explore/dose_response?${params.toString()}`);
     const data = await response.json();
 
     if (!data.series.length) {
@@ -592,7 +592,7 @@ async function loadTable() {
     if (exploreTableShowAll) params.append("show_all", "1");
 
     
-    const response = await fetch(`/api/explore/table?${params.toString()}`);
+    const response = await fetch(`${window.APP_ROOT}/api/explore/table?${params.toString()}`);
     const data = await response.json();
     
     const note = document.getElementById("explore-table-note");

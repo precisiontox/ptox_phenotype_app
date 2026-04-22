@@ -172,7 +172,7 @@ async function loadCompareOptions() {
         return;
     }
 
-    const response = await fetch(`/api/compare/options?organism_id=${encodeURIComponent(organism_id)}`);
+    const response = await fetch(`${window.APP_ROOT}/api/compare/options?organism_id=${encodeURIComponent(organism_id)}`);
     const data = await response.json();
 
     categorySelect.innerHTML =
@@ -202,7 +202,7 @@ async function loadInfoPanels() {
     if (effect_type) params.append("effect_type", effect_type);
     if (endpoint_name) params.append("endpoint_name", endpoint_name);
 
-    const response = await fetch(`/api/explore/info?${params.toString()}`);
+    const response = await fetch(`${window.APP_ROOT}/api/explore/info?${params.toString()}`);
     const data = await response.json();
 
     if (data.organism) {
@@ -242,7 +242,7 @@ async function loadCompareHeatmap() {
     const params = new URLSearchParams({ organism_id, metric });
     if (effect_type) params.append("effect_type", effect_type);
 
-    const response = await fetch(`/api/compare/heatmap?${params.toString()}`);
+    const response = await fetch(`${window.APP_ROOT}/api/compare/heatmap?${params.toString()}`);
 
     if (!response.ok) {
         const text = await response.text();
@@ -366,7 +366,7 @@ async function loadCompareTable() {
     if (effect_type) params.append("effect_type", effect_type);
     if (compareTableShowAll) params.append("show_all", "1");
 
-    const response = await fetch(`/api/compare/table?${params.toString()}`);
+    const response = await fetch(`${window.APP_ROOT}/api/compare/table?${params.toString()}`);
 
     if (!response.ok) {
         const text = await response.text();

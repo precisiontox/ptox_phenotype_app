@@ -11,15 +11,15 @@
     </div>
 
     <div class="quick-links">
-        <a class="quick-link-card" href="/experiments/">
+        <a class="quick-link-card" href="{{ url_for('experiments.list_experiments') }}">
             <div class="quick-link-title">Experiments</div>
             <div class="quick-link-text">Browse experiment metadata, conditions and batch-level summaries.</div>
         </a>
-        <a class="quick-link-card" href="/explore/">
+        <a class="quick-link-card" href="{{ url_for('explore.index') }}">
             <div class="quick-link-title">Explore Endpoints</div>
             <div class="quick-link-text">Inspect endpoint distributions, dose–response curves and raw records.</div>
         </a>
-        <a class="quick-link-card" href="/compare/">
+        <a class="quick-link-card" href="{{ url_for('compare.heatmap') }}">
             <div class="quick-link-title">Compare Endpoints</div>
             <div class="quick-link-text">Compare chemicals across endpoints with clustered heatmaps.</div>
         </a>

@@ -393,14 +393,17 @@
             }
         }
     </style>
+    <script>
+        window.APP_ROOT = {{ request.script_root|tojson }};
+    </script>
 </head>
 <body>
     <nav>
-        <a href="/">Home</a>
-        <a href="/experiments/">Experiments</a>
-        <a href="/explore/">Explore Endpoints</a>
-        <a href="/compare/">Compare Endpoints</a>
-        <!-- <a href="/api/health">API health</a> -->
+        <a href="{{ url_for('main.index') }}">Home</a>
+        <a href="{{ url_for('experiments.list_experiments') }}">Experiments</a>
+        <a href="{{ url_for('explore.index') }}">Explore</a>
+        <a href="{{ url_for('compare.heatmap') }}">Compare</a>
+        <!-- <a href="{{ url_for('api.health') }}">API health</a> -->
         <a href="https://dex.precisiontox.org/downloads/phenotype/">Data Download</a>
     </nav>
     <hr>
