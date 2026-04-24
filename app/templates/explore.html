@@ -523,10 +523,40 @@ async function loadDoseResponse() {
         yTitle = `${yTitle} (${data.y_unit})`;
     }
 
+    function lightenColor(hex, factor = 0.5) {
+        const num = parseInt(hex.slice(1), 16);
+        let r = (num >> 16) + Math.floor((255 - (num >> 16)) * factor);
+        let g = ((num >> 8) & 0x00FF) + Math.floor((255 - ((num >> 8) & 0x00FF)) * factor);
+        let b = (num & 0x0000FF) + Math.floor((255 - (num & 0x0000FF)) * factor);
+        return `rgb(${r},${g},${b})`;
+    }
+
     durationKeys.forEach((duration, idx) => {
         const traces = [];
+        const colors = [
+            "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",
+            "#9467bd", "#8c564b", "#e377c2", "#7f7f7f",
+            "#bcbd22", "#17becf"
+        ];
 
-        durationGroups[duration].forEach(series => {
+        durationGroups[duration].forEach((series, i) => {
+            let seriesLabel = "";
+            const showSeriesLabel = durationGroups[duration].length > 1;
+            const color = colors[i % colors.length];
+
+            if (showSeriesLabel) {
+                if (series.batch_id) {
+                    seriesLabel = ` (Batch ID=${series.batch_id}`;
+                } else if (series.exp_id) {
+                    seriesLabel = ` (Exp ID=${series.exp_id}`;
+                }
+
+                if (series.experiment_date) {
+                    seriesLabel += `; Date=${series.experiment_date})`;
+                } else {
+                    seriesLabel += `)`;
+                }
+            }
             traces.push({
                 x: series.x,
                 y: series.y,
@@ -537,8 +567,16 @@ async function loadDoseResponse() {
                 },
                 mode: "lines+markers",
                 type: "scatter",
-                name: series.batch_id || series.label
-            });
+                name: `Exposure${seriesLabel}`,
+                line: { color: color },
+                marker: { color: color },
+                customdata: series.n_conditions,
+                hovertemplate:
+                    "Concentration: %{x}<br>" +
+                    "Mean: %{y}<br>" +
+                    "SEM: %{error_y.array}<br>" +
+                    "N conditions: %{customdata}<extra></extra>"
+                });
 
             if (series.control_mean !== null && series.x.length > 0) {
                 const minX = Math.min(...series.x);
@@ -549,9 +587,9 @@ async function loadDoseResponse() {
                     y: [series.control_mean, series.control_mean],
                     mode: "lines",
                     type: "scatter",
-                    line: { dash: "dash" },
-                    name: `${series.batch_id || series.label} control`,
-                    hovertemplate: `${series.batch_id || series.label}<br>Control mean: %{y}<extra></extra>`
+                    line: { dash: "dash", color: lightenColor(color, 0.5) },
+                    name: `Control${seriesLabel}`,
+                    hovertemplate: `${seriesLabel}<br>Control mean: %{y}<extra></extra>`
                 });
             }
         });

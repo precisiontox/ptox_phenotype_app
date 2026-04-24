@@ -288,7 +288,8 @@ def explore_dose_response():
         WITH numeric_records AS (
             SELECT
                 pe.phenotype_experiment_id,
-                COALESCE(pe.internal_experiment_batch_id, pe.phenotype_experiment_id::TEXT) AS batch_id,
+                pe.experiment_date,
+                pe.internal_experiment_batch_id AS batch_id,
                 pc.phenotype_condition_id,
                 pc.is_control,
                 pc.exposure_concentration,
@@ -321,6 +322,7 @@ def explore_dose_response():
         condition_means AS (
             SELECT
                 phenotype_experiment_id,
+                experiment_date,
                 batch_id,
                 phenotype_condition_id,
                 is_control,
@@ -335,6 +337,7 @@ def explore_dose_response():
             GROUP BY
                 phenotype_experiment_id,
                 batch_id,
+                experiment_date,
                 phenotype_condition_id,
                 is_control,
                 exposure_concentration,
@@ -356,6 +359,7 @@ def explore_dose_response():
         exposure_summary AS (
             SELECT
                 cm.phenotype_experiment_id,
+                cm.experiment_date,
                 cm.batch_id,
                 cm.exposure_concentration,
                 cm.exposure_concentration_unit,
@@ -374,6 +378,7 @@ def explore_dose_response():
             WHERE cm.is_control = FALSE
             GROUP BY
                 cm.phenotype_experiment_id,
+                cm.experiment_date,
                 cm.batch_id,
                 cm.exposure_concentration,
                 cm.exposure_concentration_unit,
@@ -384,6 +389,7 @@ def explore_dose_response():
         )
         SELECT
             es.phenotype_experiment_id,
+            es.experiment_date,
             es.batch_id,
             es.exposure_concentration,
             es.exposure_concentration_unit,
@@ -398,7 +404,7 @@ def explore_dose_response():
         FROM exposure_summary es
         LEFT JOIN control_summary cs
           ON es.phenotype_experiment_id = cs.phenotype_experiment_id
-         AND es.batch_id = cs.batch_id
+         AND es.batch_id IS NOT DISTINCT FROM cs.batch_id
         ORDER BY
             es.batch_id,
             es.exposure_duration NULLS FIRST,
@@ -427,30 +433,45 @@ def explore_dose_response():
         if r["exposure_duration"] is not None:
             duration_label = f'{r["exposure_duration"]} {r["exposure_duration_unit"] or ""}'.strip()
 
-        series_label = r["batch_id"]
-        if duration_label:
-            series_label = f"{series_label} | {duration_label}"
+        series_key = (
+            r["phenotype_experiment_id"],
+            r["batch_id"],
+            r["experiment_date"],
+            duration_label,
+        )
 
-        series = series_map.setdefault(series_label, {
-            "label": series_label,
+        series = series_map.setdefault(series_key, {
+            "label": "",
+            "exp_id": r["phenotype_experiment_id"],
             "batch_id": r["batch_id"],
+            "experiment_date": r["experiment_date"],
             "duration_label": duration_label,
             "x": [],
             "y": [],
             "sem": [],
+            "n_conditions": [],
             "control_mean": None if r["control_mean"] is None else float(r["control_mean"]),
         })
 
         series["x"].append(float(r["exposure_concentration"]))
         series["y"].append(float(r["mean_value"]))
         series["sem"].append(None if r["sem_value"] is None else float(r["sem_value"]))
+        series["n_conditions"].append(int(r["n_conditions"]))
 
     x_unit = next(iter(x_units)) if len(x_units) == 1 else None
     y_unit = next(iter(y_units)) if len(y_units) == 1 else None
     endpoint_label = next(iter(endpoint_labels)) if len(endpoint_labels) == 1 else endpoint_name
 
     return jsonify({
-        "series": list(series_map.values()),
+        "series": sorted(
+            series_map.values(),
+            key=lambda s: (
+                s["duration_label"] or "",
+                s["batch_id"] or "",
+                s["experiment_date"] or "",
+                s["exp_id"] or 0,
+            )
+        ),
         "x_unit": x_unit,
         "y_unit": y_unit,
         "endpoint_label": endpoint_label,
