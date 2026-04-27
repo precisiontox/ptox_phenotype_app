@@ -4,24 +4,14 @@
     <meta charset="utf-8">
     <title>PrecisionTox Phenotype</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}">
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 2rem auto;
+            margin: 1rem auto;
             max-width: 1500px;
             padding: 0 1rem;
             color: #222;
-        }
-    
-        nav {
-            margin-bottom: 1rem;
-        }
-    
-        nav a {
-            margin-right: 1rem;
-            text-decoration: none;
-            color: #1f4b99;
-            font-weight: 600;
         }
     
         h1, h2 {
@@ -144,7 +134,13 @@
             background: #5b9bd5 !important;
             color: white !important;
         }
-    
+        table.dataTable tbody tr:nth-child(even) {
+            background: #f8fbfe;
+        }
+        table.dataTable tbody tr:hover {
+            background: #eef6fc;
+        }    
+
         input, select, button {
             padding: 0.35rem;
         }
@@ -349,21 +345,28 @@
             background: linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%);
             padding: 1rem 1rem 1.2rem 1rem;
             margin: 1.2rem 0 1.5rem 0;
-            box-shadow: 0 2px 8px rgba(0, 72, 128, 0.06);
+            /* box-shadow: 0 2px 8px rgba(0, 72, 128, 0.06); */
         }
 
         .section-card-header {
             margin-bottom: 0.8rem;
         }
-
+        
         .section-card-header h2 {
-            margin: 0 0 0.25rem 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
         }
 
         .section-note {
             margin: 0;
             color: #5f7386;
             font-size: 0.95rem;
+        }
+
+        .page-title{
+            /* color: #004880; */
+            margin-bottom:0.35rem;
         }
 
         #partner-effect-table thead th {
@@ -392,21 +395,107 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        .navbar {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            padding: 0.3rem 1rem;
+            background: linear-gradient(180deg, #ffffff 0%, #f6f9fc 100%);
+            border: 1px solid #e0e8f0;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .navbar a {
+            text-decoration: none;
+            color: #004880;
+            font-weight: 550;
+            padding: 0.35rem 0.7rem;
+            border-radius: 8px;
+            transition: background 0.15s ease;
+        }
+
+        .navbar a:hover {
+            background: #eaf3fb;
+        }
+
+        .navbar a.active {
+            background: #004880;
+            color: white;
+        }
+
+        .logo {
+            height: 65px;
+            margin-right: 0.5rem;
+            width: auto;
+            display: block;
+            /* background-color: #fff; */
+            transition: opacity 0.2s ease;
+        }
+        .logo:hover {
+            opacity: 0.8;
+        }
+
+        .logo-link {
+            display: flex;
+            align-items: center;
+            margin-right: 0.5rem;
+            /* padding-right: 1rem;
+            border-right: 1px solid #e5e5e5; */
+        }
+        .logo-link:hover {
+            background: transparent !important;
+        }
+
+        .nav-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .nav-links a:hover {
+            opacity: 0.8;
+        }
+
+        .nav-links-secondary {
+            margin-left: auto;
+            display: flex;
+            gap: 1rem;
+        }
+        .nav-links-secondary a {
+            color: #5f7386;
+            font-weight: 500;
+        }
+
+        .nav-links-secondary a:hover {
+            background: transparent;
+            color: #004880;
+        }
     </style>
     <script>
         window.APP_ROOT = {{ request.script_root|tojson }};
     </script>
 </head>
 <body>
-    <nav>
-        <a href="{{ url_for('main.index') }}">Home</a>
-        <a href="{{ url_for('experiments.list_experiments') }}">Experiments</a>
-        <a href="{{ url_for('explore.index') }}">Explore</a>
-        <a href="{{ url_for('compare.heatmap') }}">Compare</a>
-        <!-- <a href="{{ url_for('api.health') }}">API health</a> -->
-        <a href="https://dex.precisiontox.org/downloads/phenotype/">Data Download</a>
+    <nav class="navbar">
+        <a href="/" class="logo-link">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="PrecisionTox" class="logo">
+        </a>
+    
+        <div class="nav-links">
+            <a href="/" class="{% if request.path == '/' %}active{% endif %}">Home</a>
+            <a href="/explore/" class="{% if request.path.startswith('/explore') %}active{% endif %}">Explore</a>
+            <a href="/compare/" class="{% if request.path.startswith('/compare') %}active{% endif %}">Compare</a>
+            <a href="/experiments/" class="{% if request.path.startswith('/experiments') %}active{% endif %}">Experiments</a>
+            <!-- <a href="/endpoints/" class="{% if request.path.startswith('/endpoints') %}active{% endif %}">Endpoints</a> -->
+        </div>
+        
+        <div class="nav-links-secondary">
+            <a href="/api/health" class="{% if request.path.startswith('/api') %}active{% endif %}">API</a>
+            <a href="https://dex.precisiontox.org/downloads/phenotype/">Download</a>
+        </div>
     </nav>
-    <hr>
+    <!-- <hr> -->
     {% block content %}{% endblock %}
 </body>
 </html>
