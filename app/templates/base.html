@@ -483,15 +483,15 @@
         </a>
     
         <div class="nav-links">
-            <a href="/" class="{% if request.path == '/' %}active{% endif %}">Home</a>
-            <a href="/explore/" class="{% if request.path.startswith('/explore') %}active{% endif %}">Explore</a>
-            <a href="/compare/" class="{% if request.path.startswith('/compare') %}active{% endif %}">Compare</a>
-            <a href="/experiments/" class="{% if request.path.startswith('/experiments') %}active{% endif %}">Experiments</a>
+            <a href="{{ url_for('main.index') }}" class="{% if request.path == '/' %}active{% endif %}">Home</a>
+            <a href="{{ url_for('explore.index') }}" class="{% if request.path.startswith('/explore') %}active{% endif %}">Explore</a>
+            <a href="{{ url_for('compare.heatmap') }}" class="{% if request.path.startswith('/compare') %}active{% endif %}">Compare</a>
+            <a href="{{ url_for('experiments.list_experiments') }}" class="{% if request.path.startswith('/experiments') %}active{% endif %}">Experiments</a>
             <!-- <a href="/endpoints/" class="{% if request.path.startswith('/endpoints') %}active{% endif %}">Endpoints</a> -->
         </div>
         
         <div class="nav-links-secondary">
-            <a href="/api/health" class="{% if request.path.startswith('/api') %}active{% endif %}">API</a>
+            <a href="{{ url_for('api.health') }}" class="{% if request.path.startswith('/api') %}active{% endif %}">API</a>
             <a href="https://dex.precisiontox.org/downloads/phenotype/">Download</a>
         </div>
     </nav>
