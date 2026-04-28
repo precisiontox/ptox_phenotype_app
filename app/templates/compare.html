@@ -8,107 +8,113 @@
     </p>
 </div>
 
-<div class="section-card">
-    <div class="section-card-header">
-        <h2>Select an endpoint:</h2>
-    </div>
-    <div class="filters">
-        <label>
-            Organism
-            <select id="compare-organism-select">
-                <option value="">Select organism...</option>
-                {% for org in organisms %}
-                <option value="{{ org.organism_id }}">
-                    {% if org.common_name %}
-                        {{ org.common_name }} ({{ org.scientific_name }})
-                    {% else %}
-                        {{ org.scientific_name }}
-                    {% endif %}
-                </option>
-                {% endfor %}
-            </select>
-        </label>
+<div class="analysis-layout">
+    <aside class="sidebar-panel">
+        <h3>Choose options:</h3>
+        <div class="filters">
+            <label>
+                Organism
+                <select id="compare-organism-select">
+                    <option value="">Select organism...</option>
+                    {% for org in organisms %}
+                    <option value="{{ org.organism_id }}">
+                        {% if org.common_name %}
+                            {{ org.common_name }} ({{ org.scientific_name }})
+                        {% else %}
+                            {{ org.scientific_name }}
+                        {% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </label>
+    
+            <label>
+                Endpoint category
+                <select id="compare-category-select" disabled>
+                    <option value="">All endpoint categories</option>
+                </select>
+            </label>
+        </div>
+    </aside>
 
-        <label>
-            Endpoint category
-            <select id="compare-category-select" disabled>
-                <option value="">All endpoint categories</option>
-            </select>
-        </label>
+    <main class="analysis-main">
+        <!-- <div class="section-card">
+            <div class="section-card-header">
+                <h2>Select an endpoint:</h2>
+            </div> -->   
 
-        <label>
-            Metric
-            <select id="compare-metric-select">
-                <option value="difference">Difference</option>
-                <option value="zscore">Z-score</option>
-            </select>
-        </label>
-    </div>
+        <div id="explore-info" class="info-sections">
+            <div class="info-card">
+                <h3>Organism</h3>
+                <div id="organism-info" class="info-content">Select an organism.</div>
+            </div>
 
-    <div id="explore-info" class="info-sections">
-        <div class="info-card">
-            <h3>Organism</h3>
-            <div id="organism-info" class="info-content">Select an organism.</div>
+            <div class="info-card">
+                <h3>Endpoint category</h3>
+                <div id="category-info" class="info-content">Select an endpoint category.</div>
+            </div>
+            </div>
+        <!-- </div> -->
+
+        <div class="section-card">
+            <div class="section-card-header">
+                <h2>Heatmap</h2>
+                <p id="compare-metric-note" style="color:#4e6478; margin-top:0.5rem;">
+                    <p id="compare-metric-note" style="color:#4e6478; margin-top:0.5rem;">
+                        Difference = treatment mean − control mean where controls exist; otherwise treatment mean. Z-score is shown only where controls exist. 
+                        Heatmap colors are normalized by endpoint so endpoints with different units and scales can be compared visually.
+                        Chemicals are automatically clustered according to similarity across all current endpoints.
+                    </p>
+                </p>
+                <label>
+                    Metric
+                    <select id="compare-metric-select">
+                        <option value="difference">Difference</option>
+                        <option value="zscore">Z-score</option>
+                    </select>
+                </label>
+            </div>
+            <div id="compare-heatmap" class="chart-box" style="min-height: 900px;"></div>
         </div>
 
-        <div class="info-card">
-            <h3>Endpoint category</h3>
-            <div id="category-info" class="info-content">Select an endpoint category.</div>
+        <div class="section-card">
+            <div class="section-card-header">
+                <h2>Database records</h2>
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
+                    <div class="section-note" id="compare-table-note"></div>
+                    <button id="compare-show-all-table-btn" type="button">Show everything</button>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table id="compare-table" class="display compact stripe" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Endpoint Category</th>
+                            <th>Endpoint</th>
+                            <th>Value</th>
+                            <th>Unit</th>
+                            <th>Control</th>
+                            <th>Chemical</th>
+                            <th>Concentration</th>
+                            <th>Duration</th>
+                            <th>Batch ID</th>
+                            <th>Partner</th>
+                            <th>Date</th>
+                            <th>Biosystem Code</th>
+                            <th>Organism</th>
+                            <th>Medium</th>
+                            <th>Format</th>
+                            <th>Aggregated</th>
+                            <th>Quality</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div>
-    </div>
-</div>
-
-
-<div class="section-card">
-    <div class="section-card-header">
-        <h2>Heatmap</h2>
-        <p id="compare-metric-note" style="color:#4e6478; margin-top:0.5rem;">
-            <p id="compare-metric-note" style="color:#4e6478; margin-top:0.5rem;">
-                Difference = treatment mean − control mean where controls exist; otherwise treatment mean. Z-score is shown only where controls exist. 
-                Heatmap colors are normalized by endpoint so endpoints with different units and scales can be compared visually.
-                Chemicals are automatically clustered according to similarity across all current endpoints.
-            </p>
-        </p>
-    </div>
-    <div id="compare-heatmap" class="chart-box" style="min-height: 900px;"></div>
-</div>
-
-<div class="section-card">
-    <div class="section-card-header">
-        <h2>Database records</h2>
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
-            <div class="section-note" id="compare-table-note"></div>
-            <button id="compare-show-all-table-btn" type="button">Show everything</button>
-        </div>
-    </div>
-
-    <div class="table-wrap">
-        <table id="compare-table" class="display compact stripe" style="width:100%;">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Endpoint Category</th>
-                    <th>Endpoint</th>
-                    <th>Value</th>
-                    <th>Unit</th>
-                    <th>Control</th>
-                    <th>Chemical</th>
-                    <th>Concentration</th>
-                    <th>Duration</th>
-                    <th>Batch ID</th>
-                    <th>Partner</th>
-                    <th>Date</th>
-                    <th>Biosystem Code</th>
-                    <th>Organism</th>
-                    <th>Medium</th>
-                    <th>Format</th>
-                    <th>Aggregated</th>
-                    <th>Quality</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
+    </main>
 </div>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">

@@ -8,153 +8,160 @@
     Select organism and endpoint to explore the data distribution, chemical ranking and dose-response curve for every chemical. The table at the bottom shows all individual records matching the current filters.
     </p>
 </div>
+
+<div class="analysis-layout">
+    <aside class="sidebar-panel">
+        <h3>Choose options:</h3>
+        <div class="filters">
+            <label>
+                <b>Organism</b>
+                <select id="organism-select">
+                    <option value="">Select organism...</option>
+                    {% for org in organisms %}
+                    <option value="{{ org.organism_id }}">
+                        {% if org.common_name %}
+                            {{ org.common_name }} ({{ org.scientific_name }})
+                        {% else %}
+                            {{ org.scientific_name }}
+                        {% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </label>
     
-<div class="section-card">
-    <div class="section-card-header">
-        <h2>Select an endpoint:</h2>
-    </div>
-    <div class="filters">
-        <label>
-            <b>Organism</b>
-            <select id="organism-select">
-                <option value="">Select organism...</option>
-                {% for org in organisms %}
-                <option value="{{ org.organism_id }}">
-                    {% if org.common_name %}
-                        {{ org.common_name }} ({{ org.scientific_name }})
-                    {% else %}
-                        {{ org.scientific_name }}
-                    {% endif %}
-                </option>
-                {% endfor %}
-            </select>
-        </label>
-
-        <label>
-            <b>Endpoint category</b>
-            <select id="category-select" disabled>
-                <option value="">Select endpoint category...</option>
-            </select>
-        </label>
-
-        <label>
-            <b>Endpoint</b>
-            <select id="endpoint-select" disabled>
-                <option value="">Select endpoint...</option>
-            </select>
-        </label>
-    </div>
+            <label>
+                <b>Endpoint category</b>
+                <select id="category-select" disabled>
+                    <option value="">Select endpoint category...</option>
+                </select>
+            </label>
     
-    <!-- <h3>Selection details</h3> -->
-    <div id="explore-info" class="info-sections">
-        <div class="info-card">
-            <h3>Organism</h3>
-            <div id="organism-info" class="info-content">Select an organism.</div>
+            <label>
+                <b>Endpoint</b>
+                <select id="endpoint-select" disabled>
+                    <option value="">Select endpoint...</option>
+                </select>
+            </label>
+            <label>
+                <b>Chemical</b>
+                <select id="chemical-select" disabled>
+                    <option value="">Select chemical...</option>
+                </select>
+            </label>
+        </div>
+    </aside>
+    
+    <main class="analysis-main">
+        <!-- <div class="section-card">
+            <div class="section-card-header">
+                <h2>Your selection</h2>
+            </div> -->
+            
+            <div id="explore-info" class="info-sections">
+                <div class="info-card">
+                    <h3>Organism</h3>
+                    <div id="organism-info" class="info-content">Select an organism.</div>
+                </div>
+
+                <div class="info-card">
+                    <h3>Endpoint category</h3>
+                    <div id="category-info" class="info-content">Select an endpoint category.</div>
+                </div>
+                
+                <div class="info-card">
+                    <h3>Endpoint</h3>
+                    <div id="endpoint-info" class="info-content">Select an endpoint.</div>
+                </div>
+            </div>
+
+        <div class="section-card">
+            <div class="section-card-header">
+                <h2>Endpoint distribution</h2>
+                <p class="section-note">
+                    Data for all chemicals.
+                </p>
+            </div>
+            <div id="histogram" class="chart-box" style="min-height: 500px;"></div>
         </div>
 
-        <div class="info-card">
-            <h3>Endpoint category</h3>
-            <div id="category-info" class="info-content">Select an endpoint category.</div>
+        <div class="section-card">
+            <div class="section-card-header">
+                <h2>Chemical ranking</h2>
+            </div>
+            <div id="ranking-plot" class="chart-box" style="min-height: 500px;"></div>
         </div>
-        
-        <div class="info-card">
-            <h3>Endpoint</h3>
-            <div id="endpoint-info" class="info-content">Select an endpoint.</div>
+
+        <div class="section-card">
+            <div class="section-card-header">
+                <h2>Dose-response curves</h2>
+                <p class="section-note">
+                    Each line corresponds to a different experiment batch (for both exposures and controls).
+                </p>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:left; gap:1rem; flex-wrap:wrap;">
+
+                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.95rem;">
+                    <input type="checkbox" id="dose-log-scale">
+                    Log10 concentration axis
+                </label>
+            </div>
+            <div id="dose-response-container" class="dose-grid"></div>
         </div>
-    </div>
-</div>
 
-<div class="section-card">
-    <div class="section-card-header">
-        <h2>Endpoint distribution</h2>
-        <p class="section-note">
-            Data for all chemicals.
-        </p>
-    </div>
-    <div id="histogram" class="chart-box" style="min-height: 500px;"></div>
-</div>
-
-<div class="section-card">
-    <div class="section-card-header">
-        <h2>Chemical ranking</h2>
-    </div>
-    <div id="ranking-plot" class="chart-box" style="min-height: 500px;"></div>
-</div>
-
-<div class="section-card">
-    <div class="section-card-header">
-        <h2>Database records</h2>
-        <p class="section-note">
-            All database records corresponding to the selected endpoint (and chemical if selected).
-        </p>
-    </div>
-    <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
-        <div class="section-note" id="explore-table-note"></div>
-        <button id="show-all-table-btn" type="button">Show everything</button>
-    </div>
-    <div class="table-wrap">
-        <table id="explore-table" class="display compact stripe" style="width: 100%;">
-            <thead>
-                <tr>
-                    <th class="th-group-record">#</th>
-                    <th class="th-group-record">Endpoint Category</th>
-                    <th class="th-group-record">Endpoint Name</th>
-                    <th class="th-group-record">Endpoint Value</th>
-                    <th class="th-group-record">Endpoint Unit</th>
-                    <th class="th-group-condition">Control</th>
-                    <th class="th-group-condition">Chemical</th>
-                    <th class="th-group-condition">Exposure Concentration</th>
-                    <th class="th-group-condition">Sample type</th>
-                    <th class="th-group-condition">Exposure Duration</th>
-                    <th class="th-group-condition">Stage Organism Exposure Start</th>
-                    <th class="th-group-condition">Stage Organism Observation Start</th>
-                    <th class="th-group-condition">Container ID</th>
-                    <th class="th-group-condition">Well ID</th>
-                    <th class="th-group-experiment">Batch ID</th>
-                    <th class="th-group-experiment">Partner</th>
-                    <th class="th-group-experiment">Date</th>
-                    <th class="th-group-experiment">Biosystem Code</th>
-                    <th class="th-group-experiment">Organism</th>
-                    <th class="th-group-experiment">Strain</th>
-                    <th class="th-group-experiment">Strain Generation</th>
-                    <th class="th-group-experiment">Exposure Temperature</th>
-                    <th class="th-group-experiment">Medium</th>
-                    <th class="th-group-experiment">Solvent</th>
-                    <th class="th-group-experiment">Solvent Proportion</th>
-                    <th class="th-group-experiment">Buffer</th>
-                    <th class="th-group-experiment">Buffer Concentration</th>
-                    <th class="th-group-experiment">Format</th>
-                    <th class="th-group-experiment">Test Volume per Well</th>
-                    <th class="th-group-experiment">Number Organisms or Cells</th>
-                    <th class="th-group-experiment">Aggregated</th>
-                    <th class="th-group-experiment">Quality</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-</div>
-
-<div class="section-card">
-    <div class="section-card-header">
-        <h2>Dose-response curves</h2>
-        <p class="section-note">
-            Each line corresponds to a different experiment batch (for both exposures and controls).
-        </p>
-    </div>
-    <div style="display:flex; justify-content:space-between; align-items:left; gap:1rem; flex-wrap:wrap;">
-        <label>
-            Select Chemical
-            <select id="chemical-select" disabled>
-                <option value="">All chemicals</option>
-            </select>
-        </label>
-        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.95rem;">
-            <input type="checkbox" id="dose-log-scale">
-            Log10 concentration axis
-        </label>
-    </div>
-    <div id="dose-response-container" class="dose-grid"></div>
+        <div class="section-card">
+            <div class="section-card-header">
+                <h2>Database records</h2>
+                <p class="section-note">
+                    All database records corresponding to the selected endpoint (and chemical if selected).
+                </p>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
+                <div class="section-note" id="explore-table-note"></div>
+                <button id="show-all-table-btn" type="button">Show everything</button>
+            </div>
+            <div class="table-wrap">
+                <table id="explore-table" class="display compact stripe" style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th class="th-group-record">#</th>
+                            <th class="th-group-record">Endpoint Category</th>
+                            <th class="th-group-record">Endpoint Name</th>
+                            <th class="th-group-record">Endpoint Value</th>
+                            <th class="th-group-record">Endpoint Unit</th>
+                            <th class="th-group-condition">Control</th>
+                            <th class="th-group-condition">Chemical</th>
+                            <th class="th-group-condition">Exposure Concentration</th>
+                            <th class="th-group-condition">Sample type</th>
+                            <th class="th-group-condition">Exposure Duration</th>
+                            <th class="th-group-condition">Stage Organism Exposure Start</th>
+                            <th class="th-group-condition">Stage Organism Observation Start</th>
+                            <th class="th-group-condition">Container ID</th>
+                            <th class="th-group-condition">Well ID</th>
+                            <th class="th-group-experiment">Batch ID</th>
+                            <th class="th-group-experiment">Partner</th>
+                            <th class="th-group-experiment">Date</th>
+                            <th class="th-group-experiment">Biosystem Code</th>
+                            <th class="th-group-experiment">Organism</th>
+                            <th class="th-group-experiment">Strain</th>
+                            <th class="th-group-experiment">Strain Generation</th>
+                            <th class="th-group-experiment">Exposure Temperature</th>
+                            <th class="th-group-experiment">Medium</th>
+                            <th class="th-group-experiment">Solvent</th>
+                            <th class="th-group-experiment">Solvent Proportion</th>
+                            <th class="th-group-experiment">Buffer</th>
+                            <th class="th-group-experiment">Buffer Concentration</th>
+                            <th class="th-group-experiment">Format</th>
+                            <th class="th-group-experiment">Test Volume per Well</th>
+                            <th class="th-group-experiment">Number Organisms or Cells</th>
+                            <th class="th-group-experiment">Aggregated</th>
+                            <th class="th-group-experiment">Quality</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
 </div>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
@@ -339,7 +346,12 @@ async function loadHistogram() {
 
     if (!organism_id || !effect_type || !endpoint_name) {
         Plotly.newPlot("histogram", [], {
-            title: "Select organism, endpoint category and endpoint",
+            title: { 
+                text: "Select organism, endpoint category and endpoint",
+                font: {
+                    size: 14
+                }
+            },
             xaxis: { visible: false },
             yaxis: { visible: false }
         }, { responsive: true });
@@ -413,7 +425,12 @@ async function loadRanking() {
 
     if (!organism_id || !effect_type || !endpoint_name) {
         Plotly.newPlot("ranking-plot", [], {
-            title: "Select organism, endpoint category and endpoint",
+            title: { 
+                text: "Select organism, endpoint category and endpoint",
+                font: {
+                    size: 14
+                }
+            },
             xaxis: { visible: false },
             yaxis: { visible: false }
         }, { responsive: true });
@@ -463,7 +480,12 @@ async function loadDoseResponse() {
         container.innerHTML = '<div id="dose-response-empty" class="chart-box" style="min-height: 420px;"></div>';
 
         Plotly.newPlot("dose-response-empty", [], {
-            title: "Select organism, endpoint category, endpoint and chemical",
+            title: { 
+                text: "Select organism, endpoint category, endpoint and chemical",
+                font: {
+                    size: 14
+                }
+            },
             xaxis: { visible: false },
             yaxis: { visible: false }
         }, { responsive: true });
@@ -595,7 +617,10 @@ async function loadDoseResponse() {
         });
 
         Plotly.newPlot(`dose-response-${idx}`, traces, {
-            title: `Dose-response — ${chemicalLabel} — ${duration}`,
+            title: {
+                text: `Dose-response — ${chemicalLabel}<br>${duration}`,
+                font: { size: 13}        
+            }, 
             xaxis: {
                 title: xTitle,
                 type: document.getElementById("dose-log-scale").checked ? "log" : "linear"
@@ -822,13 +847,23 @@ document.getElementById("dose-log-scale").addEventListener("change", async funct
 const initialSelections = applySelectionsFromUrl();
 
 Plotly.newPlot("histogram", [], {
-    title: "Select organism, endpoint category and endpoint",
+    title: { 
+        text: "Select organism, endpoint category and endpoint",
+        font: {
+            size: 14
+        }
+    },
     xaxis: { visible: false },
     yaxis: { visible: false }
 }, { responsive: true });
 
 Plotly.newPlot("ranking-plot", [], {
-    title: "Select organism, endpoint category and endpoint",
+    title: { 
+        text: "Select organism, endpoint category and endpoint",
+        font: {
+            size: 14
+        }
+    },
     xaxis: { visible: false },
     yaxis: { visible: false }
 }, { responsive: true });
@@ -837,7 +872,12 @@ document.getElementById("dose-response-container").innerHTML =
     '<div id="dose-response-empty" class="chart-box" style="min-height: 420px;"></div>';
 
 Plotly.newPlot("dose-response-empty", [], {
-    title: "Select organism, endpoint category, endpoint and chemical",
+    title: { 
+        text: "Select organism, endpoint category, endpoint and chemical",
+        font: {
+            size: 14
+        }
+    },
     xaxis: { visible: false },
     yaxis: { visible: false }
 }, { responsive: true });
