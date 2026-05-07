@@ -747,6 +747,7 @@ def compare_heatmap():
                 pe.phenotype_experiment_id,
                 pc.phenotype_condition_id,
                 pc.is_control,
+                pc.sample_type,
                 pef.phenotype_effect_id,
                 pef.type AS effect_type,
                 pef.display_name AS endpoint_label,
@@ -767,6 +768,10 @@ def compare_heatmap():
                 b.organism_id = :organism_id
                 AND (:effect_type IS NULL OR pef.type = :effect_type)
                 AND (:endpoint_name IS NULL OR pef.name = :endpoint_name)
+                AND (
+                    pc.sample_type IS NULL
+                    OR pc.sample_type <> 'no_cells'
+                )
                 AND pr.effect_value IS NOT NULL
                 AND pr.effect_value ~ '^[+-]?([0-9]*[.])?[0-9]+$'
         ),
@@ -778,6 +783,7 @@ def compare_heatmap():
                 phenotype_experiment_id,
                 phenotype_condition_id,
                 is_control,
+                sample_type,
                 phenotype_effect_id,
                 effect_type,
                 endpoint_label,
@@ -791,6 +797,7 @@ def compare_heatmap():
                 phenotype_experiment_id,
                 phenotype_condition_id,
                 is_control,
+                sample_type,
                 phenotype_effect_id,
                 effect_type,
                 endpoint_label,
@@ -804,6 +811,10 @@ def compare_heatmap():
                 STDDEV_SAMP(condition_mean) AS control_sd
             FROM condition_means
             WHERE is_control = TRUE
+              AND (
+                  sample_type IS NULL
+                  OR sample_type NOT ILIKE '%agonist%'
+              )
             GROUP BY phenotype_experiment_id, phenotype_effect_id
         ),
         treatment_stats AS (
@@ -988,6 +999,7 @@ def compare_table():
             c.full_ptx_code,
             c.name AS chemical_name,
             pc.is_control,
+            pc.sample_type,
             pc.exposure_concentration,
             pc.exposure_concentration_unit,
             pc.exposure_duration,
@@ -1018,6 +1030,15 @@ def compare_table():
             b.organism_id = :organism_id
             AND (:effect_type IS NULL OR pef.type = :effect_type)
             AND (:endpoint_name IS NULL OR pef.name = :endpoint_name)
+            AND (
+                pc.sample_type IS NULL
+                OR pc.sample_type <> 'no_cells'
+            )
+            AND (
+                pc.is_control IS NOT TRUE
+                OR pc.sample_type IS NULL
+                OR pc.sample_type NOT ILIKE '%agonist%'
+            )
         ORDER BY
             c.name NULLS FIRST,
             pe.internal_experiment_batch_id NULLS LAST,

@@ -60,16 +60,21 @@
                 <h3>Endpoint category</h3>
                 <div id="category-info" class="info-content">Select an endpoint category.</div>
             </div>
+
+            <div class="info-card" id="endpoint-info-card" hidden>
+                <h3>Endpoint</h3>
+                <div id="endpoint-info" class="info-content">Select an endpoint.</div>
+            </div>
             </div>
         <!-- </div> -->
 
+        <div class="compare-tabs" role="tablist" aria-label="Compare result views">
+            <button id="compare-tab-heatmap" class="compare-tab active" type="button" role="tab" aria-selected="true" aria-controls="compare-panel-heatmap" data-tab="heatmap">Heatmap</button>
+            <button id="compare-tab-records" class="compare-tab" type="button" role="tab" aria-selected="false" aria-controls="compare-panel-records" data-tab="records">Database records</button>
+        </div>
         <div class="section-card compare-results-card">
             <div class="section-card-header">
-                <h2>Results</h2>
-                <div class="compare-tabs" role="tablist" aria-label="Compare result views">
-                    <button id="compare-tab-heatmap" class="compare-tab active" type="button" role="tab" aria-selected="true" aria-controls="compare-panel-heatmap" data-tab="heatmap">Heatmap</button>
-                    <button id="compare-tab-records" class="compare-tab" type="button" role="tab" aria-selected="false" aria-controls="compare-panel-records" data-tab="records">Database records</button>
-                </div>
+                <!-- <h2>Results</h2> -->
             </div>
 
             <div id="compare-panel-heatmap" class="compare-tab-panel active" role="tabpanel" aria-labelledby="compare-tab-heatmap">
@@ -104,6 +109,7 @@
                                 <th>Value</th>
                                 <th>Unit</th>
                                 <th>Control</th>
+                                <th>Sample Type</th>
                                 <th>Chemical</th>
                                 <th>Concentration</th>
                                 <th>Duration</th>
@@ -134,8 +140,9 @@
         display: flex;
         gap: 0.4rem;
         flex-wrap: wrap;
+        margin-left: 0.7rem;
         margin-top: 0.75rem;
-        border-bottom: 1px solid #dbe5ef;
+        /* border-bottom: 1px solid #dbe5ef; */
     }
 
     .compare-tab {
@@ -144,6 +151,7 @@
         background: #f6f9fc;
         color: #004880;
         font-weight: 600;
+        font-size: 1rem;
         padding: 0.55rem 0.85rem;
         border-radius: 8px 8px 0 0;
         cursor: pointer;
@@ -280,10 +288,14 @@ async function loadInfoPanels() {
 
     const organismBox = document.getElementById("organism-info");
     const categoryBox = document.getElementById("category-info");
+    const endpointCard = document.getElementById("endpoint-info-card");
+    const endpointBox = document.getElementById("endpoint-info");
 
     if (!organism_id) {
         organismBox.innerHTML = '<span style="color:#6b7c8d;">Select an organism.</span>';
         categoryBox.innerHTML = '<span style="color:#6b7c8d;">Select an endpoint category.</span>';
+        endpointBox.innerHTML = '<span style="color:#6b7c8d;">Select an endpoint.</span>';
+        endpointCard.hidden = true;
         return;
     }
 
@@ -313,6 +325,21 @@ async function loadInfoPanels() {
         `;
     } else {
         categoryBox.innerHTML = "Select an endpoint category.";
+    }
+
+    if (endpoint_name && data.endpoint) {
+        endpointCard.hidden = false;
+        endpointBox.innerHTML = `
+            <div class="info-row"><span class="info-label">Display name:</span><strong> ${data.endpoint.display_name || ""}</strong></div>
+            <div class="info-row"><span class="info-label">Original name:</span> ${data.endpoint.name || ""}</div>
+            <div class="info-row"><span class="info-label">Ontology term:</span> ${data.endpoint.ontology_term || ""}</div>
+            <div class="info-row"><span class="info-label">Description:</span> ${data.endpoint.description || ""}</div>
+            <div class="info-row"><span class="info-label">Unit:</span> ${data.endpoint.unit || ""}</div>
+            <div class="info-row"><span class="info-label">Data type:</span> ${data.endpoint.data_type || ""}</div>
+        `;
+    } else {
+        endpointBox.innerHTML = '<span style="color:#6b7c8d;">Select an endpoint.</span>';
+        endpointCard.hidden = true;
     }
 }
 
@@ -474,6 +501,7 @@ async function loadCompareTable() {
         r.effect_value || "",
         r.endpoint_unit || "",
         r.is_control,
+        r.sample_type || "",
         r.full_ptx_code ? `[${r.full_ptx_code}] ${r.chemical_name}` : "",
         r.exposure_concentration !== null
             ? `${r.exposure_concentration} ${r.exposure_concentration_unit || ""}`.trim()
