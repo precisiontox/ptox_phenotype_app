@@ -669,9 +669,10 @@ def explore_table():
 @api_bp.route("/compare/options")
 def compare_options():
     organism_id = request.args.get("organism_id", type=int)
+    effect_type = request.args.get("effect_type", type=str)
 
     if not organism_id:
-        return jsonify({"categories": []})
+        return jsonify({"categories": [], "endpoints": []})
 
     categories = fetch_all("""
         SELECT DISTINCT
@@ -683,12 +684,29 @@ def compare_options():
         ORDER BY pef.type
     """, {"organism_id": organism_id})
 
-    return jsonify({"categories": categories})
+    endpoints = fetch_all("""
+        SELECT DISTINCT
+            pef.name AS endpoint_name,
+            pef.display_name AS endpoint_display_name
+        FROM phenotype_effect pef
+        JOIN biosystem b
+          ON pef.biosystem_id = b.biosystem_id
+        WHERE
+            b.organism_id = :organism_id
+            AND (:effect_type IS NULL OR pef.type = :effect_type)
+        ORDER BY pef.display_name
+    """, {
+        "organism_id": organism_id,
+        "effect_type": effect_type or None,
+    })
+
+    return jsonify({"categories": categories, "endpoints": endpoints})
 
 @api_bp.route("/compare/heatmap")
 def compare_heatmap():
     organism_id = request.args.get("organism_id", type=int)
     effect_type = request.args.get("effect_type", type=str)
+    endpoint_name = request.args.get("endpoint_name", type=str)
     metric = request.args.get("metric", default="difference", type=str)
 
     if not organism_id:
@@ -748,6 +766,7 @@ def compare_heatmap():
             WHERE
                 b.organism_id = :organism_id
                 AND (:effect_type IS NULL OR pef.type = :effect_type)
+                AND (:endpoint_name IS NULL OR pef.name = :endpoint_name)
                 AND pr.effect_value IS NOT NULL
                 AND pr.effect_value ~ '^[+-]?([0-9]*[.])?[0-9]+$'
         ),
@@ -851,6 +870,7 @@ def compare_heatmap():
     rows = fetch_all(sql, {
         "organism_id": organism_id,
         "effect_type": effect_type or None,
+        "endpoint_name": endpoint_name or None,
     })
 
     chemical_rows = fetch_all("""
@@ -951,6 +971,7 @@ def compare_heatmap():
 def compare_table():
     organism_id = request.args.get("organism_id", type=int)
     effect_type = request.args.get("effect_type", type=str)
+    endpoint_name = request.args.get("endpoint_name", type=str)
     show_all = request.args.get("show_all", "0") == "1"
 
     if not organism_id:
@@ -996,6 +1017,7 @@ def compare_table():
         WHERE
             b.organism_id = :organism_id
             AND (:effect_type IS NULL OR pef.type = :effect_type)
+            AND (:endpoint_name IS NULL OR pef.name = :endpoint_name)
         ORDER BY
             c.name NULLS FIRST,
             pe.internal_experiment_batch_id NULLS LAST,
@@ -1009,6 +1031,7 @@ def compare_table():
     rows = fetch_all(sql, {
         "organism_id": organism_id,
         "effect_type": effect_type or None,
+        "endpoint_name": endpoint_name or None,
     })
 
     return jsonify({

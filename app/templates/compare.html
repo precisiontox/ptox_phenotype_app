@@ -34,6 +34,13 @@
                     <option value="">All endpoint categories</option>
                 </select>
             </label>
+
+            <label>
+                Endpoint
+                <select id="compare-endpoint-select" disabled>
+                    <option value="">All endpoints</option>
+                </select>
+            </label>
         </div>
     </aside>
 
@@ -56,15 +63,20 @@
             </div>
         <!-- </div> -->
 
-        <div class="section-card">
+        <div class="section-card compare-results-card">
             <div class="section-card-header">
-                <h2>Heatmap</h2>
+                <h2>Results</h2>
+                <div class="compare-tabs" role="tablist" aria-label="Compare result views">
+                    <button id="compare-tab-heatmap" class="compare-tab active" type="button" role="tab" aria-selected="true" aria-controls="compare-panel-heatmap" data-tab="heatmap">Heatmap</button>
+                    <button id="compare-tab-records" class="compare-tab" type="button" role="tab" aria-selected="false" aria-controls="compare-panel-records" data-tab="records">Database records</button>
+                </div>
+            </div>
+
+            <div id="compare-panel-heatmap" class="compare-tab-panel active" role="tabpanel" aria-labelledby="compare-tab-heatmap">
                 <p id="compare-metric-note" style="color:#4e6478; margin-top:0.5rem;">
-                    <p id="compare-metric-note" style="color:#4e6478; margin-top:0.5rem;">
-                        Difference = treatment mean − control mean where controls exist; otherwise treatment mean. Z-score is shown only where controls exist. 
-                        Heatmap colors are normalized by endpoint so endpoints with different units and scales can be compared visually.
-                        Chemicals are automatically clustered according to similarity across all current endpoints.
-                    </p>
+                    Difference = treatment mean − control mean where controls exist; otherwise treatment mean. Z-score is shown only where controls exist.
+                    Heatmap colors are normalized by endpoint so endpoints with different units and scales can be compared visually.
+                    Chemicals are automatically clustered according to similarity across all current endpoints.
                 </p>
                 <label>
                     Metric
@@ -73,45 +85,42 @@
                         <option value="zscore">Z-score</option>
                     </select>
                 </label>
+                <div id="compare-heatmap" class="chart-box" style="min-height: 900px;"></div>
             </div>
-            <div id="compare-heatmap" class="chart-box" style="min-height: 900px;"></div>
-        </div>
 
-        <div class="section-card">
-            <div class="section-card-header">
-                <h2>Database records</h2>
+            <div id="compare-panel-records" class="compare-tab-panel" role="tabpanel" aria-labelledby="compare-tab-records" hidden>
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
                     <div class="section-note" id="compare-table-note"></div>
                     <button id="compare-show-all-table-btn" type="button">Show everything</button>
                 </div>
-            </div>
 
-            <div class="table-wrap">
-                <table id="compare-table" class="display compact stripe" style="width:100%;">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Endpoint Category</th>
-                            <th>Endpoint</th>
-                            <th>Value</th>
-                            <th>Unit</th>
-                            <th>Control</th>
-                            <th>Chemical</th>
-                            <th>Concentration</th>
-                            <th>Duration</th>
-                            <th>Batch ID</th>
-                            <th>Partner</th>
-                            <th>Date</th>
-                            <th>Biosystem Code</th>
-                            <th>Organism</th>
-                            <th>Medium</th>
-                            <th>Format</th>
-                            <th>Aggregated</th>
-                            <th>Quality</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div class="table-wrap">
+                    <table id="compare-table" class="display compact stripe" style="width:100%;">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Endpoint Category</th>
+                                <th>Endpoint</th>
+                                <th>Value</th>
+                                <th>Unit</th>
+                                <th>Control</th>
+                                <th>Chemical</th>
+                                <th>Concentration</th>
+                                <th>Duration</th>
+                                <th>Batch ID</th>
+                                <th>Partner</th>
+                                <th>Date</th>
+                                <th>Biosystem Code</th>
+                                <th>Organism</th>
+                                <th>Medium</th>
+                                <th>Format</th>
+                                <th>Aggregated</th>
+                                <th>Quality</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
@@ -119,6 +128,37 @@
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+
+<style>
+    .compare-tabs {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+        margin-top: 0.75rem;
+        border-bottom: 1px solid #dbe5ef;
+    }
+
+    .compare-tab {
+        border: 1px solid #dbe5ef;
+        border-bottom: none;
+        background: #f6f9fc;
+        color: #004880;
+        font-weight: 600;
+        padding: 0.55rem 0.85rem;
+        border-radius: 8px 8px 0 0;
+        cursor: pointer;
+    }
+
+    .compare-tab.active {
+        background: #004880;
+        color: white;
+        border-color: #004880;
+    }
+
+    .compare-tab-panel {
+        padding-top: 0.9rem;
+    }
+</style>
 
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -130,20 +170,45 @@
 <script>
 let compareTable = null;
 let compareTableShowAll = false;
+let activeCompareTab = "heatmap";
+
+function setCompareTab(tabName) {
+    activeCompareTab = tabName;
+
+    document.querySelectorAll(".compare-tab").forEach(button => {
+        const isActive = button.dataset.tab === tabName;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-selected", isActive ? "true" : "false");
+    });
+
+    document.querySelectorAll(".compare-tab-panel").forEach(panel => {
+        const isActive = panel.id === `compare-panel-${tabName}`;
+        panel.classList.toggle("active", isActive);
+        panel.hidden = !isActive;
+    });
+
+    if (tabName === "heatmap") {
+        Plotly.Plots.resize(document.getElementById("compare-heatmap"));
+    } else if (compareTable) {
+        compareTable.columns.adjust();
+    }
+}
 
 function compareSelections() {
     return {
         organism_id: document.getElementById("compare-organism-select").value,
         effect_type: document.getElementById("compare-category-select").value,
+        endpoint_name: document.getElementById("compare-endpoint-select").value,
         metric: document.getElementById("compare-metric-select").value
     };
 }
 
 function updateCompareUrl() {
-    const { organism_id, effect_type, metric } = compareSelections();
+    const { organism_id, effect_type, endpoint_name, metric } = compareSelections();
     const params = new URLSearchParams();
     if (organism_id) params.set("organism_id", organism_id);
     if (effect_type) params.set("effect_type", effect_type);
+    if (endpoint_name) params.set("endpoint_name", endpoint_name);
     if (metric) params.set("metric", metric);
     window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
 }
@@ -152,43 +217,61 @@ function applyCompareSelectionsFromUrl() {
     const params = new URLSearchParams(window.location.search);
     const organism_id = params.get("organism_id") || "";
     const effect_type = params.get("effect_type") || "";
+    const endpoint_name = params.get("endpoint_name") || "";
     const metric = params.get("metric") || "difference";
 
     document.getElementById("compare-organism-select").value = organism_id;
     document.getElementById("compare-metric-select").value = metric;
 
-    return { effect_type };
+    return { effect_type, endpoint_name };
 }
 
 function getSelections() {
     return {
         organism_id: document.getElementById("compare-organism-select").value,
         effect_type: document.getElementById("compare-category-select").value,
+        endpoint_name: document.getElementById("compare-endpoint-select").value,
     };
 }
 
 async function loadCompareOptions() {
     const organism_id = document.getElementById("compare-organism-select").value;
     const currentCategory = document.getElementById("compare-category-select").value;
+    const currentEndpoint = document.getElementById("compare-endpoint-select").value;
     const categorySelect = document.getElementById("compare-category-select");
+    const endpointSelect = document.getElementById("compare-endpoint-select");
 
     if (!organism_id) {
         categorySelect.innerHTML = '<option value="">All endpoint categories</option>';
+        endpointSelect.innerHTML = '<option value="">All endpoints</option>';
         categorySelect.disabled = true;
+        endpointSelect.disabled = true;
         return;
     }
 
-    const response = await fetch(`${window.APP_ROOT}/api/compare/options?organism_id=${encodeURIComponent(organism_id)}`);
+    const params = new URLSearchParams({ organism_id });
+    if (currentCategory) params.append("effect_type", currentCategory);
+
+    const response = await fetch(`${window.APP_ROOT}/api/compare/options?${params.toString()}`);
     const data = await response.json();
 
     categorySelect.innerHTML =
         '<option value="">All endpoint categories</option>' +
         data.categories.map(x => `<option value="${x.effect_type}">${x.effect_type}</option>`).join("");
 
+    endpointSelect.innerHTML =
+        '<option value="">All endpoints</option>' +
+        data.endpoints.map(x => `<option value="${x.endpoint_name}">${x.endpoint_display_name}</option>`).join("");
+
     categorySelect.disabled = false;
+    endpointSelect.disabled = false;
 
     if ([...categorySelect.options].some(opt => opt.value === currentCategory)) {
         categorySelect.value = currentCategory;
+    }
+
+    if ([...endpointSelect.options].some(opt => opt.value === currentEndpoint)) {
+        endpointSelect.value = currentEndpoint;
     }
 }
 
@@ -234,7 +317,7 @@ async function loadInfoPanels() {
 }
 
 async function loadCompareHeatmap() {
-    const { organism_id, effect_type, metric } = compareSelections();
+    const { organism_id, effect_type, endpoint_name, metric } = compareSelections();
 
     if (!organism_id) {
         Plotly.newPlot("compare-heatmap", [], {
@@ -247,6 +330,7 @@ async function loadCompareHeatmap() {
 
     const params = new URLSearchParams({ organism_id, metric });
     if (effect_type) params.append("effect_type", effect_type);
+    if (endpoint_name) params.append("endpoint_name", endpoint_name);
 
     const response = await fetch(`${window.APP_ROOT}/api/compare/heatmap?${params.toString()}`);
 
@@ -355,7 +439,7 @@ async function loadCompareHeatmap() {
 }
 
 async function loadCompareTable() {
-    const { organism_id, effect_type } = compareSelections();
+    const { organism_id, effect_type, endpoint_name } = compareSelections();
 
     if (!organism_id) {
         if (compareTable) {
@@ -370,6 +454,7 @@ async function loadCompareTable() {
 
     const params = new URLSearchParams({ organism_id });
     if (effect_type) params.append("effect_type", effect_type);
+    if (endpoint_name) params.append("endpoint_name", endpoint_name);
     if (compareTableShowAll) params.append("show_all", "1");
 
     const response = await fetch(`${window.APP_ROOT}/api/compare/table?${params.toString()}`);
@@ -455,11 +540,19 @@ async function refreshCompare() {
 document.getElementById("compare-organism-select").addEventListener("change", async function() {
     compareTableShowAll = false;
     document.getElementById("compare-category-select").value = "";
+    document.getElementById("compare-endpoint-select").value = "";
     await loadCompareOptions();
     await refreshCompare();
 });
 
 document.getElementById("compare-category-select").addEventListener("change", async function() {
+    compareTableShowAll = false;
+    document.getElementById("compare-endpoint-select").value = "";
+    await loadCompareOptions();
+    await refreshCompare();
+});
+
+document.getElementById("compare-endpoint-select").addEventListener("change", async function() {
     compareTableShowAll = false;
     await refreshCompare();
 });
@@ -472,6 +565,12 @@ document.getElementById("compare-metric-select").addEventListener("change", asyn
 document.getElementById("compare-show-all-table-btn").addEventListener("click", async function() {
     compareTableShowAll = true;
     await loadCompareTable();
+});
+
+document.querySelectorAll(".compare-tab").forEach(button => {
+    button.addEventListener("click", function() {
+        setCompareTab(this.dataset.tab);
+    });
 });
 
 const initialCompareSelections = applyCompareSelectionsFromUrl();
@@ -488,6 +587,11 @@ Plotly.newPlot("compare-heatmap", [], {
 
         if (initialCompareSelections.effect_type) {
             document.getElementById("compare-category-select").value = initialCompareSelections.effect_type;
+            await loadCompareOptions();
+        }
+
+        if (initialCompareSelections.endpoint_name) {
+            document.getElementById("compare-endpoint-select").value = initialCompareSelections.endpoint_name;
         }
 
         await refreshCompare();
