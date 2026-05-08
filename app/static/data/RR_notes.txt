@@ -1,0 +1,76 @@
+
+Classic NSAIDs
+PTX029	Niflumic acid	Drug	PTGS2 inhibitor (GABA-A/NMDA/T-calcium/chloride channel blocker also)
+PTX072	Acetaminophen	Drug	PTGS2 inhibitor
+PTX039	Diclofenac	Drug	PTGS2 inhibitor
+
+Nuclear receptor disruptors, some by design, some not
+PTX003	WY-14643	Drug	PPARA agonist
+PTX043	Tributyltin	Industrial	PPARG, PPARA, RXR activation
+PTX040	bisphenol A	Industrial	ESR1,ESR2,AR,ESRRG,PPARA binding
+PTX058	Tamoxifen	Drug	ESR1 antagonist, possibly ESR2 agonist, possibly GPER1 receptor agonist
+PTX031	dexamethasone	Drug	NR3C1 agonist
+PTX030	pregnenolone	Drug/Endogenous steroid	NR1I2 agonist
+
+Neuro/channel/receptor blockers - no common MoA
+PTX021	propofol	Drug	GABA receptor agonist
+PTX022	caffeine	Drug	ADORA2A receptor agonist
+PTX035	fluoxetine	Drug	SLC6A4 inhibitor
+PTX036	nicotine	Drug	CHRNA4 inhibitor
+PTX078	5,5-Diphenylhydantoin	Drug	SCN1A,SCN2A,SCN3A,SNC8A inhibitor; activation of PXR/NR1I2 and CAR/NR1I3
+
+Kind of alone
+PTX024	Fingolimod	Drug	S1PR agonist
+
+Acetylcholinesterase inhibitors, chemically similar
+PTX002	Ethoprophos	Pesticide	ACHE inhibition
+PTX026	Chlorpyrifos	Pesticide	ACHE inhibition
+PTX027	Chlorpyrifos oxon	Pesticide	BCHE, ACHE inhibition
+
+Three very similar things with the same MoA
+PTX025	Triadimenol	Fungicide	Sterol-14-alpha-demethylase inhibitor
+PTX067	Cyproconazole	Fungicide	Sterol-14-alpha-demethylase inhibitor
+PTX061	Imazalil	Fungicide	Sterol-14-alpha-demethylase inhibitor
+
+Two pretty similar things with the same MoA
+PTX042	Carbendazim	Fungicide	Tubulin-disruptor
+PTX093	Mebendazole	Wormicide	Tubulin-disruptor
+
+PTX070	RotenoneÂ Â 	Insecticide	Complex I inhibitor
+
+
+Various industrials
+PTX033	Diphenylamine	Industrial	not-sure
+PTX045	Butoxyethanol	Industrial	not-sure
+PTX057	HC yellow 13	Industrial	not-sure-looks similar to AR disruptor (chemically, e.g. Flutamide)
+PTX064	Toluene-2,5-diamine	Industrial	not-sure
+PTX066	N,N'-bis-(2-hydroxyethyl)-2-nitro-p-phenylenediamine
+PTX068	o-Aminophenol	Industrial	-
+PTX092	Tetraethylthiuram disulfide	Industrial
+
+Metals
+PTX006	Sodium arsenite	Industrial	Metallothionins, etc.
+PTX001	Cadmium chloride	Industrial	Metallothionins, etc.
+
+PTX004	DMSO	Solvent	-useless
+
+All variants of acrylamide - really looking at how similar/different these are?
+PTX007	Acrylamide
+PTX009	N,N'-methylenediacrylamide (NBA or MBA?)
+PTX010	N-(butoxymethyl)acrylamide (NBMA)
+PTX011	N-[(2-methylpropoxy)methyl]acrylamide (NMPMA)
+PTX012	N,N'-diethylacrylamide (NDEA)
+PTX013	Methacrylamide
+PTX059	N,N?Dimethylacetamide (DMA)
+PTX065	N,N-Dimethylformamide (DMF)
+
+Imidazoles - really looking at how similar/different these are?
+PTX014	Imidazole
+PTX015	4-methyl imidazole
+PTX016	2-methyl imidazole
+PTX017	1-Methylimidazole
+PTX018	1,2-dimethylimidazole
+PTX019	2-ethyl-4-methyl imidazole
+PTX020	1H-imidazole-1-propylamine
+
+PTX023	N-Methylaniline	Industrial	not an imidazole, but very similar

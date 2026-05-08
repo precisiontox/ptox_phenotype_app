@@ -1,0 +1,1432 @@
+[
+  {
+    "ptx_code": "PTX111",
+    "chemical_name": "17-Methyltestosterone",
+    "group_label": "Use Category: Endogenous"
+  },
+  {
+    "ptx_code": "PTX107",
+    "chemical_name": "17alpha-Ethinylestradiol",
+    "group_label": "Use Category: Endogenous"
+  },
+  {
+    "ptx_code": "PTX125",
+    "chemical_name": "5alpha-Dihydrotestosterone",
+    "group_label": "Use Category: Endogenous"
+  },
+  {
+    "ptx_code": "PTX130",
+    "chemical_name": "Aldosterone",
+    "group_label": "Use Category: Endogenous"
+  },
+  {
+    "ptx_code": "PTX041",
+    "chemical_name": "clofibric acid",
+    "group_label": "Use Category: Endogenous"
+  },
+  {
+    "ptx_code": "PTX114",
+    "chemical_name": "Estriol",
+    "group_label": "Use Category: Endogenous"
+  },
+  {
+    "ptx_code": "PTX120",
+    "chemical_name": "Estrone",
+    "group_label": "Use Category: Endogenous"
+  },
+  {
+    "ptx_code": "PTX136",
+    "chemical_name": "Levonorgestrel",
+    "group_label": "Use Category: Endogenous"
+  },
+  {
+    "ptx_code": "PTX129",
+    "chemical_name": "Levothyroxine",
+    "group_label": "Use Category: Endogenous"
+  },
+  {
+    "ptx_code": "PTX030",
+    "chemical_name": "pregnenolone",
+    "group_label": "Use Category: Endogenous"
+  },
+  {
+    "ptx_code": "PTX121",
+    "chemical_name": "Testosterone",
+    "group_label": "Use Category: Endogenous"
+  },
+  {
+    "ptx_code": "PTX123",
+    "chemical_name": "17beta-Trenbolone",
+    "group_label": "Use Category: Food and other consumption"
+  },
+  {
+    "ptx_code": "PTX007",
+    "chemical_name": "Acrylamide",
+    "group_label": "Use Category: Food and other consumption"
+  },
+  {
+    "ptx_code": "PTX103",
+    "chemical_name": "Aspartame",
+    "group_label": "Use Category: Food and other consumption"
+  },
+  {
+    "ptx_code": "PTX022",
+    "chemical_name": "caffeine",
+    "group_label": "Use Category: Food and other consumption"
+  },
+  {
+    "ptx_code": "PTX013",
+    "chemical_name": "Methacrylamide",
+    "group_label": "Use Category: Food and other consumption"
+  },
+  {
+    "ptx_code": "PTX018",
+    "chemical_name": "1,2-dimethylimidazole",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX224",
+    "chemical_name": "1,3-Diphenylguanidine",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX075",
+    "chemical_name": "1-ethyl-1H-imidazole",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX017",
+    "chemical_name": "1-Methylimidazole",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX076",
+    "chemical_name": "1-Vinylimidazole",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX020",
+    "chemical_name": "1H-imidazole-1-propylamine",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX143",
+    "chemical_name": "2,2-Bisphenol F",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX019",
+    "chemical_name": "2-ethyl-4-methyl imidazole",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX074",
+    "chemical_name": "2-ethylimidazole",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX016",
+    "chemical_name": "2-methyl imidazole",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX015",
+    "chemical_name": "4-methyl imidazole",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX203",
+    "chemical_name": "6PPD",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX083",
+    "chemical_name": "all-trans Retinoic acid",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX040",
+    "chemical_name": "bisphenol A",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX045",
+    "chemical_name": "Butoxyethanol",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX032",
+    "chemical_name": "Ethylenethiourea",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX014",
+    "chemical_name": "Imidazole",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX098",
+    "chemical_name": "Methimazole",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX012",
+    "chemical_name": "N,N'-diethylacrylamide (NDEA)",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX009",
+    "chemical_name": "N,N'-methylenediacrylamide (NBA or MBA?)",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX065",
+    "chemical_name": "N,N-Dimethylformamide (DMF)",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX059",
+    "chemical_name": "N,N?Dimethylacetamide (DMA)",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX010",
+    "chemical_name": "N-(butoxymethyl)acrylamide (NBMA)",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX011",
+    "chemical_name": "N-[(2-methylpropoxy)methyl]acrylamide (NMPMA)",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX023",
+    "chemical_name": "N-Methylaniline",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX073",
+    "chemical_name": "PCB28",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX116",
+    "chemical_name": "Perchloric acid",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX227",
+    "chemical_name": "Perfluorohexanoic acid",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX082",
+    "chemical_name": "PFOA",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX159",
+    "chemical_name": "Tetrabromobisphenol A",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX133",
+    "chemical_name": "Triphenyl phosphate",
+    "group_label": "Use Category: Industry and consumer goods"
+  },
+  {
+    "ptx_code": "PTX138",
+    "chemical_name": "Ethylparaben",
+    "group_label": "Use Category: Personal care products"
+  },
+  {
+    "ptx_code": "PTX028",
+    "chemical_name": "Genistein",
+    "group_label": "Use Category: Personal care products"
+  },
+  {
+    "ptx_code": "PTX057",
+    "chemical_name": "HC yellow 13",
+    "group_label": "Use Category: Personal care products"
+  },
+  {
+    "ptx_code": "PTX080",
+    "chemical_name": "Hexachlorophene",
+    "group_label": "Use Category: Personal care products"
+  },
+  {
+    "ptx_code": "PTX158",
+    "chemical_name": "Methylparaben",
+    "group_label": "Use Category: Personal care products"
+  },
+  {
+    "ptx_code": "PTX066",
+    "chemical_name": "N,N'-bis-(2-hydroxyethyl)-2-nitro-p-phenylenediamine",
+    "group_label": "Use Category: Personal care products"
+  },
+  {
+    "ptx_code": "PTX068",
+    "chemical_name": "o-Aminophenol",
+    "group_label": "Use Category: Personal care products"
+  },
+  {
+    "ptx_code": "PTX109",
+    "chemical_name": "Progesterone",
+    "group_label": "Use Category: Personal care products"
+  },
+  {
+    "ptx_code": "PTX223",
+    "chemical_name": "Sulisobenzone",
+    "group_label": "Use Category: Personal care products"
+  },
+  {
+    "ptx_code": "PTX069",
+    "chemical_name": "Tigecycline",
+    "group_label": "Use Category: Personal care products"
+  },
+  {
+    "ptx_code": "PTX172",
+    "chemical_name": "1,2,4-triazole",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX225",
+    "chemical_name": "2,4-Dichlorophenoxyacetic acid",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX233",
+    "chemical_name": "2,6-Dichlorobenzamide",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX226",
+    "chemical_name": "2-(4-Chloro-2-methylphenoxy)acetic acid (MCPA)",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX258",
+    "chemical_name": "Acetochlor",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX060",
+    "chemical_name": "atrazine (ATZ)",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX090",
+    "chemical_name": "Azoxystrobin",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX001",
+    "chemical_name": "Cadmium chloride",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX042",
+    "chemical_name": "Carbendazim",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX219",
+    "chemical_name": "Chlorantraniliprole",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX026",
+    "chemical_name": "Chlorpyrifos",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX027",
+    "chemical_name": "Chlorpyrifos oxon",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX208",
+    "chemical_name": "Clopyralid",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX067",
+    "chemical_name": "Cyproconazole",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX221",
+    "chemical_name": "Cyprodinil",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX206",
+    "chemical_name": "DEET",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX167",
+    "chemical_name": "Difenoconazole",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX033",
+    "chemical_name": "Diphenylamine",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX214",
+    "chemical_name": "Diuron",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX162",
+    "chemical_name": "Enniatin B1",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX168",
+    "chemical_name": "Epoxiconazole",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX177",
+    "chemical_name": "Etaconazole",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX209",
+    "chemical_name": "Ethofumesate",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX002",
+    "chemical_name": "Ethoprophos",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX165",
+    "chemical_name": "Fenbuconazole",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX231",
+    "chemical_name": "Fenhexamid",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX113",
+    "chemical_name": "Fenitrothion",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX088",
+    "chemical_name": "Fipronil",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX217",
+    "chemical_name": "Flonicamid",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX061",
+    "chemical_name": "Imazalil",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX087",
+    "chemical_name": "Imidacloprid",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX122",
+    "chemical_name": "Linuron",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX230",
+    "chemical_name": "Myclobutanil",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX036",
+    "chemical_name": "nicotine",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX178",
+    "chemical_name": "Penconazole",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX232",
+    "chemical_name": "Pentachlorophenol",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX134",
+    "chemical_name": "Prochloraz",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX174",
+    "chemical_name": "Propiconazole",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX169",
+    "chemical_name": "Prothioconazole",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX070",
+    "chemical_name": "Rotenone",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX006",
+    "chemical_name": "Sodium arsenite",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX079",
+    "chemical_name": "Tebuconazole",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX205",
+    "chemical_name": "Terbutryn",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX092",
+    "chemical_name": "Tetraethylthiuram disulfide",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX212",
+    "chemical_name": "Thiabendazole",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX089",
+    "chemical_name": "Thiamethoxam",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX025",
+    "chemical_name": "Triadimenol",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX171",
+    "chemical_name": "Triazole acetic acid",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX166",
+    "chemical_name": "Triazole alanine",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX043",
+    "chemical_name": "Tributyltin",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX077",
+    "chemical_name": "Trichlorfon",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX081",
+    "chemical_name": "Triethyltin bromide",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX163",
+    "chemical_name": "Tunicamycin",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX117",
+    "chemical_name": "Vinclozolin",
+    "group_label": "Use Category: Pesticide"
+  },
+  {
+    "ptx_code": "PTX078",
+    "chemical_name": "5,5-Diphenylhydantoin",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX104",
+    "chemical_name": "5-Fluorouracil",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX072",
+    "chemical_name": "Acetaminophen",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX198",
+    "chemical_name": "Acyclovir",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX183",
+    "chemical_name": "Adefovir dipivoxil",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX161",
+    "chemical_name": "Amitriptyline",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX188",
+    "chemical_name": "Amoxicillin",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX194",
+    "chemical_name": "Ampicillin (trihydrate)",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX126",
+    "chemical_name": "Anastrozole",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX034",
+    "chemical_name": "Atorvastatin",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX099",
+    "chemical_name": "Azacytidine",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX160",
+    "chemical_name": "Azidothymidine",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX106",
+    "chemical_name": "Bromodeoxyuridine",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX091",
+    "chemical_name": "Camptothecin",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX086",
+    "chemical_name": "Carbamazepine",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX173",
+    "chemical_name": "Chloroquine",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX085",
+    "chemical_name": "Chlorpromazine",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX191",
+    "chemical_name": "Ciprofloxacin",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX094",
+    "chemical_name": "Citalopram",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX155",
+    "chemical_name": "Clarithromycin",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX145",
+    "chemical_name": "Clomipramine",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX102",
+    "chemical_name": "Colchicine",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX127",
+    "chemical_name": "Cortisol",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX096",
+    "chemical_name": "Cyclophosphamide",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX062",
+    "chemical_name": "Cyclosporin A",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX108",
+    "chemical_name": "Cyproterone acetate",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX100",
+    "chemical_name": "Cytosinearabinoside",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX156",
+    "chemical_name": "Dasatinib monohydrate",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX031",
+    "chemical_name": "dexamethasone",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX039",
+    "chemical_name": "Diclofenac",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX004",
+    "chemical_name": "DMSO",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX142",
+    "chemical_name": "Doxorubicin",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX151",
+    "chemical_name": "Droperidol",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX135",
+    "chemical_name": "Dutasteride",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX195",
+    "chemical_name": "Enalapril",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX152",
+    "chemical_name": "Ethanol",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX112",
+    "chemical_name": "Finasteride",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX024",
+    "chemical_name": "Fingolimod",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX150",
+    "chemical_name": "Flecainide",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX157",
+    "chemical_name": "Fluconazole",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX035",
+    "chemical_name": "fluoxetine",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX119",
+    "chemical_name": "Flutamide",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX132",
+    "chemical_name": "Fulvestrant",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX197",
+    "chemical_name": "Furosemide",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX084",
+    "chemical_name": "Haloperidol",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX101",
+    "chemical_name": "Hydroxyurea",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX153",
+    "chemical_name": "Hydroxyzine",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX199",
+    "chemical_name": "Ibuprofen",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX131",
+    "chemical_name": "Iopanoic acid",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX196",
+    "chemical_name": "Irbesartan",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX176",
+    "chemical_name": "Itraconazole",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX175",
+    "chemical_name": "Ketoconazole",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX146",
+    "chemical_name": "Lenvatinib",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX095",
+    "chemical_name": "Lidocaine",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX139",
+    "chemical_name": "Lithium (cation)",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX093",
+    "chemical_name": "Mebendazole",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX115",
+    "chemical_name": "Metformin (hydrochloride)",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX105",
+    "chemical_name": "Methotrexate",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX128",
+    "chemical_name": "Metyrapone",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX137",
+    "chemical_name": "Mifepristone",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX147",
+    "chemical_name": "Nadolol",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX141",
+    "chemical_name": "Naproxen",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX029",
+    "chemical_name": "Niflumic acid",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX179",
+    "chemical_name": "Omeprazole",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX202",
+    "chemical_name": "Pamidronic acid",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX186",
+    "chemical_name": "Pentamidine",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX187",
+    "chemical_name": "Phenacetin",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX044",
+    "chemical_name": "Picoxystrobin",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX140",
+    "chemical_name": "Pimozide",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX021",
+    "chemical_name": "propofol",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX097",
+    "chemical_name": "Propylthiouracil",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX124",
+    "chemical_name": "Raloxifene",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX185",
+    "chemical_name": "Rosiglitazone",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX144",
+    "chemical_name": "Sorafenib",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX110",
+    "chemical_name": "Spironolactone",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX200",
+    "chemical_name": "Sulfadiazine",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX181",
+    "chemical_name": "Sulfamethoxazole",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX058",
+    "chemical_name": "Tamoxifen",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX201",
+    "chemical_name": "Tenofovir",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX063",
+    "chemical_name": "Tetracycline",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX118",
+    "chemical_name": "Tiratricol",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX064",
+    "chemical_name": "Toluene-2,5-diamine",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX222",
+    "chemical_name": "Tramadol",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX180",
+    "chemical_name": "Triamterene",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX037",
+    "chemical_name": "valproic acid",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX038",
+    "chemical_name": "Verapamil",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX003",
+    "chemical_name": "WY-14643 / Pirinixic acid",
+    "group_label": "Use Category: Pharmaceutical"
+  },
+  {
+    "ptx_code": "PTX026",
+    "chemical_name": "Chlorpyrifos",
+    "group_label": "Mode of Action: Cholinesterase inhibitors"
+  },
+  {
+    "ptx_code": "PTX027",
+    "chemical_name": "Chlorpyrifos oxon",
+    "group_label": "Mode of Action: Cholinesterase inhibitors"
+  },
+  {
+    "ptx_code": "PTX002",
+    "chemical_name": "Ethoprophos",
+    "group_label": "Mode of Action: Cholinesterase inhibitors"
+  },
+  {
+    "ptx_code": "PTX078",
+    "chemical_name": "5,5-Diphenylhydantoin",
+    "group_label": "Mode of Action: Ion channel modulators"
+  },
+  {
+    "ptx_code": "PTX086",
+    "chemical_name": "Carbamazepine",
+    "group_label": "Mode of Action: Ion channel modulators"
+  },
+  {
+    "ptx_code": "PTX150",
+    "chemical_name": "Flecainide",
+    "group_label": "Mode of Action: Ion channel modulators"
+  },
+  {
+    "ptx_code": "PTX095",
+    "chemical_name": "Lidocaine",
+    "group_label": "Mode of Action: Ion channel modulators"
+  },
+  {
+    "ptx_code": "PTX001",
+    "chemical_name": "Cadmium chloride",
+    "group_label": "Mode of Action: Metals / Metalloid toxicants"
+  },
+  {
+    "ptx_code": "PTX006",
+    "chemical_name": "Sodium arsenite",
+    "group_label": "Mode of Action: Metals / Metalloid toxicants"
+  },
+  {
+    "ptx_code": "PTX080",
+    "chemical_name": "Hexachlorophene",
+    "group_label": "Mode of Action: Mitochondrial / Energy metabolism disruptors"
+  },
+  {
+    "ptx_code": "PTX093",
+    "chemical_name": "Mebendazole",
+    "group_label": "Mode of Action: Mitochondrial / Energy metabolism disruptors"
+  },
+  {
+    "ptx_code": "PTX232",
+    "chemical_name": "Pentachlorophenol",
+    "group_label": "Mode of Action: Mitochondrial / Energy metabolism disruptors"
+  },
+  {
+    "ptx_code": "PTX070",
+    "chemical_name": "Rotenone",
+    "group_label": "Mode of Action: Mitochondrial / Energy metabolism disruptors"
+  },
+  {
+    "ptx_code": "PTX006",
+    "chemical_name": "Sodium arsenite",
+    "group_label": "Mode of Action: Mitochondrial / Energy metabolism disruptors"
+  },
+  {
+    "ptx_code": "PTX078",
+    "chemical_name": "5,5-Diphenylhydantoin",
+    "group_label": "Mode of Action: Neuroactive agents (CNS / synaptic)"
+  },
+  {
+    "ptx_code": "PTX022",
+    "chemical_name": "caffeine",
+    "group_label": "Mode of Action: Neuroactive agents (CNS / synaptic)"
+  },
+  {
+    "ptx_code": "PTX086",
+    "chemical_name": "Carbamazepine",
+    "group_label": "Mode of Action: Neuroactive agents (CNS / synaptic)"
+  },
+  {
+    "ptx_code": "PTX094",
+    "chemical_name": "Citalopram",
+    "group_label": "Mode of Action: Neuroactive agents (CNS / synaptic)"
+  },
+  {
+    "ptx_code": "PTX145",
+    "chemical_name": "Clomipramine",
+    "group_label": "Mode of Action: Neuroactive agents (CNS / synaptic)"
+  },
+  {
+    "ptx_code": "PTX151",
+    "chemical_name": "Droperidol",
+    "group_label": "Mode of Action: Neuroactive agents (CNS / synaptic)"
+  },
+  {
+    "ptx_code": "PTX152",
+    "chemical_name": "Ethanol",
+    "group_label": "Mode of Action: Neuroactive agents (CNS / synaptic)"
+  },
+  {
+    "ptx_code": "PTX088",
+    "chemical_name": "Fipronil",
+    "group_label": "Mode of Action: Neuroactive agents (CNS / synaptic)"
+  },
+  {
+    "ptx_code": "PTX035",
+    "chemical_name": "fluoxetine",
+    "group_label": "Mode of Action: Neuroactive agents (CNS / synaptic)"
+  },
+  {
+    "ptx_code": "PTX084",
+    "chemical_name": "Haloperidol",
+    "group_label": "Mode of Action: Neuroactive agents (CNS / synaptic)"
+  },
+  {
+    "ptx_code": "PTX036",
+    "chemical_name": "nicotine",
+    "group_label": "Mode of Action: Neuroactive agents (CNS / synaptic)"
+  },
+  {
+    "ptx_code": "PTX140",
+    "chemical_name": "Pimozide",
+    "group_label": "Mode of Action: Neuroactive agents (CNS / synaptic)"
+  },
+  {
+    "ptx_code": "PTX021",
+    "chemical_name": "propofol",
+    "group_label": "Mode of Action: Neuroactive agents (CNS / synaptic)"
+  },
+  {
+    "ptx_code": "PTX037",
+    "chemical_name": "valproic acid",
+    "group_label": "Mode of Action: Neuroactive agents (CNS / synaptic)"
+  },
+  {
+    "ptx_code": "PTX039",
+    "chemical_name": "Diclofenac",
+    "group_label": "Mode of Action: NSAIDs"
+  },
+  {
+    "ptx_code": "PTX199",
+    "chemical_name": "Ibuprofen",
+    "group_label": "Mode of Action: NSAIDs"
+  },
+  {
+    "ptx_code": "PTX141",
+    "chemical_name": "Naproxen",
+    "group_label": "Mode of Action: NSAIDs"
+  },
+  {
+    "ptx_code": "PTX029",
+    "chemical_name": "Niflumic acid",
+    "group_label": "Mode of Action: NSAIDs"
+  },
+  {
+    "ptx_code": "PTX111",
+    "chemical_name": "17-Methyltestosterone",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX226",
+    "chemical_name": "2-(4-Chloro-2-methylphenoxy)acetic acid (MCPA)",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX258",
+    "chemical_name": "Acetochlor",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX083",
+    "chemical_name": "all-trans Retinoic acid",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX040",
+    "chemical_name": "bisphenol A",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX001",
+    "chemical_name": "Cadmium chloride",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX026",
+    "chemical_name": "Chlorpyrifos",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX031",
+    "chemical_name": "dexamethasone",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX135",
+    "chemical_name": "Dutasteride",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX114",
+    "chemical_name": "Estriol",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX120",
+    "chemical_name": "Estrone",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX112",
+    "chemical_name": "Finasteride",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX024",
+    "chemical_name": "Fingolimod",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX119",
+    "chemical_name": "Flutamide",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX132",
+    "chemical_name": "Fulvestrant",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX028",
+    "chemical_name": "Genistein",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX136",
+    "chemical_name": "Levonorgestrel",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX073",
+    "chemical_name": "PCB28",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX232",
+    "chemical_name": "Pentachlorophenol",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX030",
+    "chemical_name": "pregnenolone",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX185",
+    "chemical_name": "Rosiglitazone",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX006",
+    "chemical_name": "Sodium arsenite",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX058",
+    "chemical_name": "Tamoxifen",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX121",
+    "chemical_name": "Testosterone",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX043",
+    "chemical_name": "Tributyltin",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX081",
+    "chemical_name": "Triethyltin bromide",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX003",
+    "chemical_name": "WY-14643 / Pirinixic acid",
+    "group_label": "Mode of Action: Nuclear receptor modulators / Endocrine disruptors"
+  },
+  {
+    "ptx_code": "PTX042",
+    "chemical_name": "Carbendazim",
+    "group_label": "Mode of Action: Tubulin disruptors"
+  },
+  {
+    "ptx_code": "PTX102",
+    "chemical_name": "Colchicine",
+    "group_label": "Mode of Action: Tubulin disruptors"
+  },
+  {
+    "ptx_code": "PTX093",
+    "chemical_name": "Mebendazole",
+    "group_label": "Mode of Action: Tubulin disruptors"
+  },
+  {
+    "ptx_code": "PTX007",
+    "chemical_name": "Acrylamide",
+    "group_label": "Others: Acrylamides & amides"
+  },
+  {
+    "ptx_code": "PTX013",
+    "chemical_name": "Methacrylamide",
+    "group_label": "Others: Acrylamides & amides"
+  },
+  {
+    "ptx_code": "PTX012",
+    "chemical_name": "N,N'-diethylacrylamide (NDEA)",
+    "group_label": "Others: Acrylamides & amides"
+  },
+  {
+    "ptx_code": "PTX009",
+    "chemical_name": "N,N'-methylenediacrylamide (NBA or MBA?)",
+    "group_label": "Others: Acrylamides & amides"
+  },
+  {
+    "ptx_code": "PTX065",
+    "chemical_name": "N,N-Dimethylformamide (DMF)",
+    "group_label": "Others: Acrylamides & amides"
+  },
+  {
+    "ptx_code": "PTX059",
+    "chemical_name": "N,N?Dimethylacetamide (DMA)",
+    "group_label": "Others: Acrylamides & amides"
+  },
+  {
+    "ptx_code": "PTX010",
+    "chemical_name": "N-(butoxymethyl)acrylamide (NBMA)",
+    "group_label": "Others: Acrylamides & amides"
+  },
+  {
+    "ptx_code": "PTX011",
+    "chemical_name": "N-[(2-methylpropoxy)methyl]acrylamide (NMPMA)",
+    "group_label": "Others: Acrylamides & amides"
+  },
+  {
+    "ptx_code": "PTX067",
+    "chemical_name": "Cyproconazole",
+    "group_label": "Others: Azole fungicides"
+  },
+  {
+    "ptx_code": "PTX061",
+    "chemical_name": "Imazalil",
+    "group_label": "Others: Azole fungicides"
+  },
+  {
+    "ptx_code": "PTX025",
+    "chemical_name": "Triadimenol",
+    "group_label": "Others: Azole fungicides"
+  },
+  {
+    "ptx_code": "PTX018",
+    "chemical_name": "1,2-dimethylimidazole",
+    "group_label": "Others: Imidazoles & analogues"
+  },
+  {
+    "ptx_code": "PTX017",
+    "chemical_name": "1-Methylimidazole",
+    "group_label": "Others: Imidazoles & analogues"
+  },
+  {
+    "ptx_code": "PTX020",
+    "chemical_name": "1H-imidazole-1-propylamine",
+    "group_label": "Others: Imidazoles & analogues"
+  },
+  {
+    "ptx_code": "PTX019",
+    "chemical_name": "2-ethyl-4-methyl imidazole",
+    "group_label": "Others: Imidazoles & analogues"
+  },
+  {
+    "ptx_code": "PTX016",
+    "chemical_name": "2-methyl imidazole",
+    "group_label": "Others: Imidazoles & analogues"
+  },
+  {
+    "ptx_code": "PTX015",
+    "chemical_name": "4-methyl imidazole",
+    "group_label": "Others: Imidazoles & analogues"
+  },
+  {
+    "ptx_code": "PTX014",
+    "chemical_name": "Imidazole",
+    "group_label": "Others: Imidazoles & analogues"
+  },
+  {
+    "ptx_code": "PTX023",
+    "chemical_name": "N-Methylaniline",
+    "group_label": "Others: Imidazoles & analogues"
+  },
+  {
+    "ptx_code": "PTX045",
+    "chemical_name": "Butoxyethanol",
+    "group_label": "Others: Industrial miscellany"
+  },
+  {
+    "ptx_code": "PTX033",
+    "chemical_name": "Diphenylamine",
+    "group_label": "Others: Industrial miscellany"
+  },
+  {
+    "ptx_code": "PTX057",
+    "chemical_name": "HC yellow 13",
+    "group_label": "Others: Industrial miscellany"
+  },
+  {
+    "ptx_code": "PTX066",
+    "chemical_name": "N,N'-bis-(2-hydroxyethyl)-2-nitro-p-phenylenediamine",
+    "group_label": "Others: Industrial miscellany"
+  },
+  {
+    "ptx_code": "PTX068",
+    "chemical_name": "o-Aminophenol",
+    "group_label": "Others: Industrial miscellany"
+  },
+  {
+    "ptx_code": "PTX092",
+    "chemical_name": "Tetraethylthiuram disulfide",
+    "group_label": "Others: Industrial miscellany"
+  },
+  {
+    "ptx_code": "PTX064",
+    "chemical_name": "Toluene-2,5-diamine",
+    "group_label": "Others: Industrial miscellany"
+  }
+]

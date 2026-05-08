@@ -1,7 +1,62 @@
+import csv
+import json
+from pathlib import Path
+
 from flask import Blueprint, jsonify, request
 from app.db import fetch_all, fetch_one
 
 api_bp = Blueprint("api", __name__)
+
+TOXICITY_CATEGORIES_PATH = Path(__file__).resolve().parents[1] / "static" / "data" / "toxicity_categories.tsv"
+CHEMICAL_GROUPS_PATH = Path(__file__).resolve().parents[1] / "static" / "data" / "chemical_groups.json"
+
+
+def is_relevant_toxicity_association(score, n_refs):
+    return score > 0 and (score >= 2 or (score >= 1 and n_refs >= 3))
+
+
+def load_relevant_toxicity_categories():
+    categories_by_ptx = {}
+    if not TOXICITY_CATEGORIES_PATH.exists():
+        return categories_by_ptx
+
+    with TOXICITY_CATEGORIES_PATH.open(newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle, delimiter="\t")
+        for row in reader:
+            ptx_code = (row.get("ptx_code") or "").strip()
+            tox_class = (row.get("tox_class") or "").strip()
+            if not ptx_code or not tox_class:
+                continue
+
+            try:
+                score = float(row.get("score") or 0)
+                n_refs = int(float(row.get("n_refs") or 0))
+            except ValueError:
+                continue
+
+            if is_relevant_toxicity_association(score, n_refs):
+                categories_by_ptx.setdefault(ptx_code, {})[tox_class] = {
+                    "score": score,
+                    "n_refs": n_refs,
+                }
+
+    return categories_by_ptx
+
+
+def load_chemical_groups():
+    groups = {}
+    if not CHEMICAL_GROUPS_PATH.exists():
+        return groups
+
+    with CHEMICAL_GROUPS_PATH.open(encoding="utf-8") as handle:
+        for row in json.load(handle):
+            ptx_code = (row.get("ptx_code") or "").strip()
+            group_label = (row.get("group_label") or "").strip()
+            if not ptx_code or not group_label:
+                continue
+            groups.setdefault(group_label, set()).add(ptx_code)
+
+    return groups
 
 
 @api_bp.route("/health")
@@ -702,12 +757,93 @@ def compare_options():
 
     return jsonify({"categories": categories, "endpoints": endpoints})
 
+
+@api_bp.route("/compare/toxicity-categories")
+def compare_toxicity_categories():
+    organism_id = request.args.get("organism_id", type=int)
+    if not organism_id:
+        return jsonify({"categories": []})
+
+    chemical_rows = fetch_all("""
+        SELECT DISTINCT
+            c.full_ptx_code
+        FROM phenotype_condition pc
+        JOIN phenotype_experiment pe
+          ON pc.phenotype_experiment_id = pe.phenotype_experiment_id
+        JOIN biosystem b
+          ON pe.biosystem_id = b.biosystem_id
+        JOIN chemical c
+          ON pc.ptx_code = c.ptx_code
+        WHERE
+            b.organism_id = :organism_id
+            AND pc.is_control = FALSE
+            AND (
+                pc.sample_type IS NULL
+                OR pc.sample_type <> 'no_cells'
+            )
+    """, {"organism_id": organism_id})
+
+    available_ptx_codes = {row["full_ptx_code"] for row in chemical_rows}
+    categories_by_ptx = load_relevant_toxicity_categories()
+    category_counts = {}
+
+    for ptx_code in available_ptx_codes:
+        for tox_class in categories_by_ptx.get(ptx_code, {}):
+            category_counts[tox_class] = category_counts.get(tox_class, 0) + 1
+
+    categories = [
+        {"tox_class": tox_class, "n_chemicals": n_chemicals}
+        for tox_class, n_chemicals in sorted(category_counts.items())
+    ]
+    return jsonify({"categories": categories})
+
+
+@api_bp.route("/compare/rr-groups")
+def compare_rr_groups():
+    organism_id = request.args.get("organism_id", type=int)
+    if not organism_id:
+        return jsonify({"groups": []})
+
+    chemical_rows = fetch_all("""
+        SELECT DISTINCT
+            c.full_ptx_code
+        FROM phenotype_condition pc
+        JOIN phenotype_experiment pe
+          ON pc.phenotype_experiment_id = pe.phenotype_experiment_id
+        JOIN biosystem b
+          ON pe.biosystem_id = b.biosystem_id
+        JOIN chemical c
+          ON pc.ptx_code = c.ptx_code
+        WHERE
+            b.organism_id = :organism_id
+            AND pc.is_control = FALSE
+            AND (
+                pc.sample_type IS NULL
+                OR pc.sample_type <> 'no_cells'
+            )
+    """, {"organism_id": organism_id})
+
+    available_ptx_codes = {row["full_ptx_code"] for row in chemical_rows}
+    rr_groups = load_chemical_groups()
+    groups = []
+    for group_name, ptx_codes in sorted(rr_groups.items()):
+        n_chemicals = len(ptx_codes & available_ptx_codes)
+        if n_chemicals:
+            groups.append({"group_name": group_name, "n_chemicals": n_chemicals})
+
+    return jsonify({"groups": groups})
+
 @api_bp.route("/compare/heatmap")
 def compare_heatmap():
     organism_id = request.args.get("organism_id", type=int)
     effect_type = request.args.get("effect_type", type=str)
     endpoint_name = request.args.get("endpoint_name", type=str)
     metric = request.args.get("metric", default="difference", type=str)
+    clustering = request.args.get("clustering", default="hierarchical", type=str)
+    toxicity_category = request.args.get("toxicity_category", type=str)
+    rr_group = request.args.get("rr_group", type=str)
+    if clustering not in {"default", "nearest-neighbor", "hierarchical"}:
+        clustering = "hierarchical"
 
     if not organism_id:
         return jsonify({
@@ -716,9 +852,22 @@ def compare_heatmap():
             "z": [],
             "customdata": [],
             "metric": metric,
+            "clustering": clustering,
+            "toxicity_category": toxicity_category,
+            "rr_group": rr_group,
         })
 
     if metric == "zscore":
+        metric_expr = """
+            CASE
+                WHEN cs.control_mean IS NOT NULL
+                 AND cs.control_sd IS NOT NULL
+                 AND cs.control_sd <> 0
+                    THEN (ts.treatment_mean - cs.control_mean) / cs.control_sd
+                ELSE NULL
+            END
+        """
+    elif metric == "response_score":
         metric_expr = """
             CASE
                 WHEN cs.control_mean IS NOT NULL
@@ -884,6 +1033,189 @@ def compare_heatmap():
         "endpoint_name": endpoint_name or None,
     })
 
+    if metric == "response_score":
+        response_rows = fetch_all("""
+            WITH numeric_records AS (
+                SELECT
+                    c.ptx_code,
+                    c.full_ptx_code,
+                    c.name AS chemical_name,
+                    pe.phenotype_experiment_id,
+                    pc.phenotype_condition_id,
+                    pc.is_control,
+                    pc.sample_type,
+                    pc.exposure_concentration,
+                    pef.phenotype_effect_id,
+                    pef.type AS effect_type,
+                    pef.display_name AS endpoint_label,
+                    CAST(pr.effect_value AS DOUBLE PRECISION) AS value_num
+                FROM phenotype_record pr
+                JOIN phenotype_condition pc
+                  ON pr.phenotype_condition_id = pc.phenotype_condition_id
+                JOIN phenotype_experiment pe
+                  ON pc.phenotype_experiment_id = pe.phenotype_experiment_id
+                JOIN biosystem b
+                  ON pe.biosystem_id = b.biosystem_id
+                JOIN phenotype_effect pef
+                  ON pr.phenotype_effect_id = pef.phenotype_effect_id
+                LEFT JOIN chemical c
+                  ON pc.ptx_code = c.ptx_code
+                WHERE
+                    b.organism_id = :organism_id
+                    AND (:effect_type IS NULL OR pef.type = :effect_type)
+                    AND (:endpoint_name IS NULL OR pef.name = :endpoint_name)
+                    AND (
+                        pc.sample_type IS NULL
+                        OR pc.sample_type <> 'no_cells'
+                    )
+                    AND pr.effect_value IS NOT NULL
+                    AND pr.effect_value ~ '^[+-]?([0-9]*[.])?[0-9]+$'
+            ),
+            condition_means AS (
+                SELECT
+                    ptx_code,
+                    full_ptx_code,
+                    chemical_name,
+                    phenotype_experiment_id,
+                    phenotype_condition_id,
+                    is_control,
+                    sample_type,
+                    exposure_concentration,
+                    phenotype_effect_id,
+                    effect_type,
+                    endpoint_label,
+                    AVG(value_num) AS condition_mean
+                FROM numeric_records
+                GROUP BY
+                    ptx_code,
+                    full_ptx_code,
+                    chemical_name,
+                    phenotype_experiment_id,
+                    phenotype_condition_id,
+                    is_control,
+                    sample_type,
+                    exposure_concentration,
+                    phenotype_effect_id,
+                    effect_type,
+                    endpoint_label
+            ),
+            control_stats AS (
+                SELECT
+                    phenotype_experiment_id,
+                    phenotype_effect_id,
+                    AVG(condition_mean) AS control_mean,
+                    STDDEV_SAMP(condition_mean) AS control_sd
+                FROM condition_means
+                WHERE is_control = TRUE
+                  AND (
+                      sample_type IS NULL
+                      OR sample_type NOT ILIKE '%agonist%'
+                  )
+                GROUP BY phenotype_experiment_id, phenotype_effect_id
+            )
+            SELECT
+                CONCAT('[', cm.full_ptx_code, '] ', cm.chemical_name) AS chemical_label,
+                CONCAT('[', cm.effect_type, '] ', cm.endpoint_label) AS endpoint_label,
+                cm.phenotype_experiment_id,
+                cm.exposure_concentration,
+                CASE
+                    WHEN cs.control_mean IS NOT NULL
+                     AND cs.control_sd IS NOT NULL
+                     AND cs.control_sd <> 0
+                        THEN (cm.condition_mean - cs.control_mean) / cs.control_sd
+                    WHEN cs.control_mean IS NOT NULL
+                        THEN cm.condition_mean - cs.control_mean
+                    ELSE cm.condition_mean
+                END AS response_value,
+                CASE WHEN cs.control_mean IS NOT NULL THEN TRUE ELSE FALSE END AS has_control
+            FROM condition_means cm
+            LEFT JOIN control_stats cs
+              ON cm.phenotype_experiment_id = cs.phenotype_experiment_id
+             AND cm.phenotype_effect_id = cs.phenotype_effect_id
+            WHERE cm.is_control = FALSE
+              AND cm.ptx_code IS NOT NULL
+              AND cs.control_mean IS NOT NULL
+        """, {
+            "organism_id": organism_id,
+            "effect_type": effect_type or None,
+            "endpoint_name": endpoint_name or None,
+        })
+
+        import math
+
+        def correlation(xs, ys):
+            if len(xs) < 2 or len(set(xs)) < 2 or len(set(ys)) < 2:
+                return None
+            x_mean = sum(xs) / len(xs)
+            y_mean = sum(ys) / len(ys)
+            numerator = sum((x - x_mean) * (y - y_mean) for x, y in zip(xs, ys))
+            x_var = sum((x - x_mean) ** 2 for x in xs)
+            y_var = sum((y - y_mean) ** 2 for y in ys)
+            if x_var == 0 or y_var == 0:
+                return None
+            return numerator / math.sqrt(x_var * y_var)
+
+        grouped = {}
+        for row in response_rows:
+            value = row["response_value"]
+            if value is None:
+                continue
+            grouped.setdefault((row["chemical_label"], row["endpoint_label"]), []).append(row)
+
+        rows = []
+        for (chemical_label, endpoint_label), group in grouped.items():
+            scored = []
+            for row in group:
+                value = float(row["response_value"])
+                concentration = row["exposure_concentration"]
+                log_concentration = None
+                try:
+                    concentration_value = float(concentration) if concentration is not None else None
+                except (TypeError, ValueError):
+                    concentration_value = None
+                if concentration_value is not None and concentration_value > 0:
+                    log_concentration = math.log10(concentration_value)
+                scored.append({
+                    "value": value,
+                    "abs_value": abs(value),
+                    "log_concentration": log_concentration,
+                    "experiment_id": row["phenotype_experiment_id"],
+                    "has_control": bool(row["has_control"]),
+                })
+
+            strongest = max(scored, key=lambda item: item["abs_value"])
+            concentration_points = [
+                item for item in scored
+                if item["log_concentration"] is not None
+            ]
+            if len({item["log_concentration"] for item in concentration_points}) >= 2:
+                corr = correlation(
+                    [item["log_concentration"] for item in concentration_points],
+                    [item["abs_value"] for item in concentration_points],
+                )
+                trend_factor = 0.5 + 0.5 * max(0, corr or 0)
+            else:
+                trend_factor = 0.75
+
+            log_values = [item["log_concentration"] for item in concentration_points]
+            strongest_log = strongest["log_concentration"]
+            if strongest_log is not None and len(set(log_values)) >= 2:
+                span = max(log_values) - min(log_values)
+                concentration_rank = (strongest_log - min(log_values)) / span if span else 0
+                potency_factor = 1 - 0.5 * concentration_rank
+            else:
+                potency_factor = 0.75
+
+            direction = 1 if strongest["value"] >= 0 else -1
+            rows.append({
+                "chemical_label": chemical_label,
+                "endpoint_label": endpoint_label,
+                "mean_value": direction * strongest["abs_value"] * trend_factor * potency_factor,
+                "n_experiments": len({item["experiment_id"] for item in scored}),
+                "n_with_control": len({item["experiment_id"] for item in scored if item["has_control"]}),
+                "n_without_control": len({item["experiment_id"] for item in scored if not item["has_control"]}),
+            })
+
     chemical_rows = fetch_all("""
         SELECT DISTINCT
             c.full_ptx_code,
@@ -898,6 +1230,10 @@ def compare_heatmap():
         WHERE
             b.organism_id = :organism_id
             AND pc.is_control = FALSE
+            AND (
+                pc.sample_type IS NULL
+                OR pc.sample_type <> 'no_cells'
+            )
         ORDER BY c.full_ptx_code, c.name
     """, {"organism_id": organism_id})
 
@@ -908,10 +1244,40 @@ def compare_heatmap():
             "z": [],
             "customdata": [],
             "metric": metric,
+            "clustering": clustering,
+            "toxicity_category": toxicity_category,
+            "rr_group": rr_group,
         })
+
+    if toxicity_category:
+        categories_by_ptx = load_relevant_toxicity_categories()
+        chemical_rows = [
+            row for row in chemical_rows
+            if toxicity_category in categories_by_ptx.get(row["full_ptx_code"], {})
+        ]
+
+    if rr_group:
+        rr_groups = load_chemical_groups()
+        selected_ptx_codes = rr_groups.get(rr_group, set())
+        chemical_rows = [
+            row for row in chemical_rows
+            if row["full_ptx_code"] in selected_ptx_codes
+        ]
 
     chemicals = [f'[{r["full_ptx_code"]}] {r["name"]}' for r in chemical_rows]
     endpoints = sorted({r["endpoint_label"] for r in rows})
+
+    if not chemicals:
+        return jsonify({
+            "x": [],
+            "y": [],
+            "z": [],
+            "customdata": [],
+            "metric": metric,
+            "clustering": clustering,
+            "toxicity_category": toxicity_category,
+            "rr_group": rr_group,
+        })
 
     value_map = {(r["chemical_label"], r["endpoint_label"]): float(r["mean_value"]) for r in rows}
     n_exp_map = {(r["chemical_label"], r["endpoint_label"]): int(r["n_experiments"]) for r in rows}
@@ -936,35 +1302,158 @@ def compare_heatmap():
 
     import math
 
-    col_means = []
+    normalized = [row[:] for row in z]
     for j in range(len(endpoints)):
-        vals = [z[i][j] for i in range(len(chemicals)) if z[i][j] is not None]
-        col_means.append(sum(vals) / len(vals) if vals else 0.0)
+        vals = [normalized[i][j] for i in range(len(chemicals)) if normalized[i][j] is not None]
+        if not vals:
+            continue
 
-    filled = []
-    for i in range(len(chemicals)):
-        filled.append([
-            z[i][j] if z[i][j] is not None else col_means[j]
-            for j in range(len(endpoints))
-        ])
+        mean = sum(vals) / len(vals)
+        variance = sum((v - mean) ** 2 for v in vals) / len(vals)
+        sd = math.sqrt(variance)
 
-    remaining = list(range(len(chemicals)))
-    order = []
+        for i in range(len(chemicals)):
+            value = normalized[i][j]
+            if value is None:
+                normalized[i][j] = None
+            elif sd == 0:
+                normalized[i][j] = 0.0
+            else:
+                normalized[i][j] = (value - mean) / sd
 
-    row_means = [sum(row) / len(row) if row else 0 for row in filled]
-    start = min(remaining, key=lambda i: row_means[i]) if remaining else None
-    if start is not None:
-        order.append(start)
-        remaining.remove(start)
+    filled = [
+        [value if value is not None else 0.0 for value in row]
+        for row in normalized
+    ]
 
-    def dist(a, b):
-        return math.sqrt(sum((filled[a][k] - filled[b][k]) ** 2 for k in range(len(endpoints))))
+    def euclidean(row_a, row_b):
+        return math.sqrt(sum((row_a[k] - row_b[k]) ** 2 for k in range(len(endpoints))))
 
-    while remaining:
-        last = order[-1]
-        nxt = min(remaining, key=lambda i: dist(last, i))
-        order.append(nxt)
-        remaining.remove(nxt)
+    def nearest_neighbor_order(vectors):
+        remaining = list(range(len(vectors)))
+        order = []
+        row_means = [sum(row) / len(row) if row else 0 for row in vectors]
+        start = min(remaining, key=lambda i: row_means[i]) if remaining else None
+        if start is not None:
+            order.append(start)
+            remaining.remove(start)
+
+        while remaining:
+            last = order[-1]
+            nxt = min(remaining, key=lambda i: euclidean(vectors[last], vectors[i]))
+            order.append(nxt)
+            remaining.remove(nxt)
+
+        return order
+
+    def hierarchical_cluster(vectors):
+        if not vectors:
+            return [], []
+        if len(vectors) == 1:
+            return [0], []
+
+        clusters = {
+            i: {
+                "id": i,
+                "members": [i],
+                "left": None,
+                "right": None,
+                "height": 0.0,
+                "size": 1,
+            }
+            for i in range(len(vectors))
+        }
+        active = list(clusters)
+        next_id = len(vectors)
+        distances = {}
+        for idx, a_id in enumerate(active[:-1]):
+            for b_id in active[idx + 1:]:
+                distances[(a_id, b_id)] = euclidean(vectors[a_id], vectors[b_id])
+
+        def distance_between(a_id, b_id):
+            key = (a_id, b_id) if a_id < b_id else (b_id, a_id)
+            return distances[key]
+
+        while len(active) > 1:
+            best = None
+            for idx, a_id in enumerate(active[:-1]):
+                for b_id in active[idx + 1:]:
+                    distance = distance_between(a_id, b_id)
+                    candidate = (
+                        distance,
+                        min(clusters[a_id]["members"]),
+                        min(clusters[b_id]["members"]),
+                        a_id,
+                        b_id,
+                    )
+                    if best is None or candidate < best:
+                        best = candidate
+
+            distance, _, _, left_id, right_id = best
+            left = clusters[left_id]
+            right = clusters[right_id]
+            if min(right["members"]) < min(left["members"]):
+                left_id, right_id = right_id, left_id
+                left = clusters[left_id]
+                right = clusters[right_id]
+
+            clusters[next_id] = {
+                "id": next_id,
+                "members": left["members"] + right["members"],
+                "left": left_id,
+                "right": right_id,
+                "height": distance,
+                "size": left["size"] + right["size"],
+            }
+            next_active = [cluster_id for cluster_id in active if cluster_id not in (left_id, right_id)]
+            for other_id in next_active:
+                merged_distance = (
+                    left["size"] * distance_between(left_id, other_id)
+                    + right["size"] * distance_between(right_id, other_id)
+                ) / (left["size"] + right["size"])
+                key = (other_id, next_id) if other_id < next_id else (next_id, other_id)
+                distances[key] = merged_distance
+
+            active = next_active
+            active.append(next_id)
+            next_id += 1
+
+        root_id = active[0]
+
+        def leaves(node_id):
+            node = clusters[node_id]
+            if node["left"] is None:
+                return node["members"]
+            return leaves(node["left"]) + leaves(node["right"])
+
+        order = leaves(root_id)
+        leaf_positions = {leaf_id: pos for pos, leaf_id in enumerate(order)}
+        segments = []
+
+        def build_segments(node_id):
+            node = clusters[node_id]
+            if node["left"] is None:
+                return leaf_positions[node_id], 0.0
+
+            left_y, left_height = build_segments(node["left"])
+            right_y, right_height = build_segments(node["right"])
+            height = node["height"]
+            segments.append({
+                "x": [left_height, height, height, right_height],
+                "y": [left_y, left_y, right_y, right_y],
+            })
+            return (left_y + right_y) / 2, height
+
+        build_segments(root_id)
+        return order, segments
+
+    dendrogram_segments = []
+    if clustering == "hierarchical":
+        order, dendrogram_segments = hierarchical_cluster(filled)
+    elif clustering == "nearest-neighbor":
+        order = nearest_neighbor_order(filled)
+    else:
+        order = list(range(len(chemicals)))
 
     chemicals_ordered = [chemicals[i] for i in order]
     z_ordered = [z[i] for i in order]
@@ -975,7 +1464,11 @@ def compare_heatmap():
         "y": chemicals_ordered,
         "z": z_ordered,
         "customdata": custom_ordered,
+        "dendrogram": dendrogram_segments,
         "metric": metric,
+        "clustering": clustering,
+        "toxicity_category": toxicity_category,
+        "rr_group": rr_group,
     })
 
 @api_bp.route("/compare/table")

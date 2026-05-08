@@ -70,6 +70,7 @@
 
         <div class="compare-tabs" role="tablist" aria-label="Compare result views">
             <button id="compare-tab-heatmap" class="compare-tab active" type="button" role="tab" aria-selected="true" aria-controls="compare-panel-heatmap" data-tab="heatmap">Heatmap</button>
+            <button id="compare-tab-pca" class="compare-tab" type="button" role="tab" aria-selected="false" aria-controls="compare-panel-pca" data-tab="pca">PCA</button>
             <button id="compare-tab-records" class="compare-tab" type="button" role="tab" aria-selected="false" aria-controls="compare-panel-records" data-tab="records">Database records</button>
         </div>
         <div class="section-card compare-results-card">
@@ -79,18 +80,84 @@
 
             <div id="compare-panel-heatmap" class="compare-tab-panel active" role="tabpanel" aria-labelledby="compare-tab-heatmap">
                 <p id="compare-metric-note" style="color:#4e6478; margin-top:0.5rem;">
-                    Difference = treatment mean − control mean where controls exist; otherwise treatment mean. Z-score is shown only where controls exist.
                     Heatmap colors are normalized by endpoint so endpoints with different units and scales can be compared visually.
-                    Chemicals are automatically clustered according to similarity across all current endpoints.
                 </p>
-                <label>
-                    Metric
-                    <select id="compare-metric-select">
-                        <option value="difference">Difference</option>
-                        <option value="zscore">Z-score</option>
-                    </select>
-                </label>
+                <div class="metric-control">
+                    <div class="selector-help-group">
+                        <label>
+                            <div>
+                                Metric: 
+                                <span class="selector-help" tabindex="0" aria-label="Metric help">?</span>
+                                <div class="selector-tooltip" role="tooltip">
+                                    Value represented by heatmap cells:
+                                    <div><strong>Difference = </strong> treatment mean - control mean (where controls exist; otherwise treatment mean)</div>
+                                    <div><strong>Z-score =</strong> (treatment_mean - control_mean) / control_sd (where control exists; otherwise blank)</div>
+                                    <div><strong>Dose-response evidence:</strong> rewards strong control-normalized responses that increase with concentration and appear at lower concentrations.</div>
+                                </div>
+                            </div>
+                            <select id="compare-metric-select">
+                                <option value="difference">Difference</option>
+                                <option value="zscore">Z-score</option>
+                                <option value="response_score">Dose-response evidence</option>
+                            </select>
+                        </label>
+
+                    </div>
+                    <div class="selector-help-group">
+                        <label>
+                            <div>
+                                Order:
+                                <span class="selector-help" tabindex="0" aria-label="Clustering help">?</span>
+                                <div class="selector-tooltip" role="tooltip">
+                                    <div><strong>Default:</strong> sort chemicals by PTX code.</div>
+                                    <div><strong>Nearest-neighbor:</strong> order chemicals by repeatedly choosing the most similar next row using displayed values.</div>
+                                    <div><strong>Hierarchical clustering</strong> average-linkage clustering using displayed values, with a dendrogram.</div>
+                                </div>
+                            </div>
+                            <select id="compare-clustering-select">
+                                <option value="default">Default</option>
+                                <option value="nearest-neighbor">Nearest-neighbor</option>
+                                <option value="hierarchical">Hierarchical clustering</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="selector-help-group">
+                        <label>
+                            <div>
+                                Toxicity category:
+                                <span class="selector-help" tabindex="0" aria-label="Toxicity category help">?</span>
+                                <div class="selector-tooltip" role="tooltip">
+                                    <div>Show chemicals only on specific toxicity categories.</div>
+                                </div>
+                            </div>
+                            <select id="compare-toxicity-category-select" disabled>
+                                <option value="">All toxicity categories</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="selector-help-group">
+                        <label>
+                            <div>
+                                Chemical group:
+                                <span class="selector-help" tabindex="0" aria-label="Chemical group help">?</span>
+                                <div class="selector-tooltip" role="tooltip">
+                                    <div>Show chemicals only in a selected curated chemical group.</div>
+                                </div>
+                            </div>
+                            <select id="compare-rr-group-select" disabled>
+                                <option value="">All chemical groups</option>
+                            </select>
+                        </label>
+                    </div>
+                </div>
                 <div id="compare-heatmap" class="chart-box" style="min-height: 900px;"></div>
+            </div>
+
+            <div id="compare-panel-pca" class="compare-tab-panel" role="tabpanel" aria-labelledby="compare-tab-pca" hidden>
+                <p style="color:#4e6478; margin-top:0.5rem;">
+                    PCA uses the current heatmap matrix with chemicals as points and endpoints as features.
+                </p>
+                <div id="compare-pca" class="chart-box" style="min-height: 720px;"></div>
             </div>
 
             <div id="compare-panel-records" class="compare-tab-panel" role="tabpanel" aria-labelledby="compare-tab-records" hidden>
@@ -166,6 +233,77 @@
     .compare-tab-panel {
         padding-top: 0.9rem;
     }
+
+    .metric-control {
+        display: inline-flex;
+        align-items: flex-end;
+        gap: 0.7rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.75rem;
+    }
+
+    .selector-help-group {
+        position: relative;
+        margin-right:0.8rem;
+    }
+
+    .selector-help-group label {
+        display: grid;
+        gap: 0.25rem;
+        width: max-content;
+    }
+
+    .selector-help-group label > div:first-child {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        width: 100%;
+    }
+
+    .selector-help-group select {
+        width: 100%;
+    }
+
+    .selector-help {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1rem;
+        height: 1rem;
+        border-radius: 50%;
+        background: #004880;
+        color: white;
+        font-size: 0.8rem;
+        font-weight: 700;
+        line-height: 1;
+        cursor: help;
+        user-select: none;
+        margin-bottom: 0.15rem;
+    }
+
+    .selector-tooltip {
+        display: none;
+        position: absolute;
+        left: 0;
+        top: calc(100% + 0.35rem);
+        z-index: 10;
+        width: 28rem;
+        max-width: min(28rem, 82vw);
+        padding: 0.65rem 0.75rem;
+        border: 1px solid #cdd9e4;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #243746;
+        box-shadow: 0 6px 18px rgba(0, 72, 128, 0.16);
+        font-size: 0.9rem;
+        line-height: 1.45;
+    }
+
+    .selector-help:hover + .selector-tooltip,
+    .selector-help:focus + .selector-tooltip {
+        display: block;
+    }
 </style>
 
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
@@ -197,6 +335,8 @@ function setCompareTab(tabName) {
 
     if (tabName === "heatmap") {
         Plotly.Plots.resize(document.getElementById("compare-heatmap"));
+    } else if (tabName === "pca") {
+        Plotly.Plots.resize(document.getElementById("compare-pca"));
     } else if (compareTable) {
         compareTable.columns.adjust();
     }
@@ -207,17 +347,23 @@ function compareSelections() {
         organism_id: document.getElementById("compare-organism-select").value,
         effect_type: document.getElementById("compare-category-select").value,
         endpoint_name: document.getElementById("compare-endpoint-select").value,
-        metric: document.getElementById("compare-metric-select").value
+        metric: document.getElementById("compare-metric-select").value,
+        clustering: document.getElementById("compare-clustering-select").value,
+        toxicity_category: document.getElementById("compare-toxicity-category-select").value,
+        rr_group: document.getElementById("compare-rr-group-select").value
     };
 }
 
 function updateCompareUrl() {
-    const { organism_id, effect_type, endpoint_name, metric } = compareSelections();
+    const { organism_id, effect_type, endpoint_name, metric, clustering, toxicity_category, rr_group } = compareSelections();
     const params = new URLSearchParams();
     if (organism_id) params.set("organism_id", organism_id);
     if (effect_type) params.set("effect_type", effect_type);
     if (endpoint_name) params.set("endpoint_name", endpoint_name);
     if (metric) params.set("metric", metric);
+    if (clustering) params.set("clustering", clustering);
+    if (toxicity_category) params.set("toxicity_category", toxicity_category);
+    if (rr_group) params.set("rr_group", rr_group);
     window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
 }
 
@@ -227,11 +373,15 @@ function applyCompareSelectionsFromUrl() {
     const effect_type = params.get("effect_type") || "";
     const endpoint_name = params.get("endpoint_name") || "";
     const metric = params.get("metric") || "difference";
+    const clustering = params.get("clustering") || "default";
+    const toxicity_category = params.get("toxicity_category") || "";
+    const rr_group = params.get("rr_group") || "";
 
     document.getElementById("compare-organism-select").value = organism_id;
     document.getElementById("compare-metric-select").value = metric;
+    document.getElementById("compare-clustering-select").value = clustering;
 
-    return { effect_type, endpoint_name };
+    return { effect_type, endpoint_name, toxicity_category, rr_group };
 }
 
 function getSelections() {
@@ -280,6 +430,56 @@ async function loadCompareOptions() {
 
     if ([...endpointSelect.options].some(opt => opt.value === currentEndpoint)) {
         endpointSelect.value = currentEndpoint;
+    }
+}
+
+async function loadToxicityCategories(selectedCategory = "") {
+    const organism_id = document.getElementById("compare-organism-select").value;
+    const toxicitySelect = document.getElementById("compare-toxicity-category-select");
+
+    if (!organism_id) {
+        toxicitySelect.innerHTML = '<option value="">All toxicity categories</option>';
+        toxicitySelect.disabled = true;
+        return;
+    }
+
+    const response = await fetch(`${window.APP_ROOT}/api/compare/toxicity-categories?${new URLSearchParams({ organism_id }).toString()}`);
+    const data = await response.json();
+    toxicitySelect.replaceChildren(new Option("All toxicity categories", ""));
+    data.categories.forEach(x => {
+        toxicitySelect.add(new Option(`${x.tox_class} (${x.n_chemicals})`, x.tox_class));
+    });
+
+    toxicitySelect.disabled = false;
+    if ([...toxicitySelect.options].some(opt => opt.value === selectedCategory)) {
+        toxicitySelect.value = selectedCategory;
+    } else {
+        toxicitySelect.value = "";
+    }
+}
+
+async function loadRrGroups(selectedGroup = "") {
+    const organism_id = document.getElementById("compare-organism-select").value;
+    const rrGroupSelect = document.getElementById("compare-rr-group-select");
+
+    if (!organism_id) {
+        rrGroupSelect.innerHTML = '<option value="">All chemical groups</option>';
+        rrGroupSelect.disabled = true;
+        return;
+    }
+
+    const response = await fetch(`${window.APP_ROOT}/api/compare/rr-groups?${new URLSearchParams({ organism_id }).toString()}`);
+    const data = await response.json();
+    rrGroupSelect.replaceChildren(new Option("All chemical groups", ""));
+    data.groups.forEach(x => {
+        rrGroupSelect.add(new Option(`${x.group_name} (${x.n_chemicals})`, x.group_name));
+    });
+
+    rrGroupSelect.disabled = false;
+    if ([...rrGroupSelect.options].some(opt => opt.value === selectedGroup)) {
+        rrGroupSelect.value = selectedGroup;
+    } else {
+        rrGroupSelect.value = "";
     }
 }
 
@@ -343,49 +543,18 @@ async function loadInfoPanels() {
     }
 }
 
-async function loadCompareHeatmap() {
-    const { organism_id, effect_type, endpoint_name, metric } = compareSelections();
+function clearComparePca(title) {
+    Plotly.newPlot("compare-pca", [], {
+        title,
+        xaxis: { visible: false },
+        yaxis: { visible: false }
+    }, { responsive: true });
+}
 
-    if (!organism_id) {
-        Plotly.newPlot("compare-heatmap", [], {
-            title: "Select an organism",
-            xaxis: { visible: false },
-            yaxis: { visible: false }
-        }, { responsive: true });
-        return;
-    }
-
-    const params = new URLSearchParams({ organism_id, metric });
-    if (effect_type) params.append("effect_type", effect_type);
-    if (endpoint_name) params.append("endpoint_name", endpoint_name);
-
-    const response = await fetch(`${window.APP_ROOT}/api/compare/heatmap?${params.toString()}`);
-
-    if (!response.ok) {
-        const text = await response.text();
-        console.error("Compare heatmap error:", response.status, text);
-        throw new Error(`Compare heatmap request failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (!data.x.length || !data.y.length) {
-        Plotly.newPlot("compare-heatmap", [], {
-            title: "No data available for the selected filters",
-            xaxis: { visible: false },
-            yaxis: { visible: false }
-        }, { responsive: true });
-        return;
-    }
-
-    // Keep the raw values for hover
-    const rawZ = data.z.map(row => row.slice());
-
-    // Normalize by endpoint (column-wise z-score) for color display
-    const displayZ = data.z.map(row => row.slice());
-
+function normalizeHeatmapColumns(z) {
+    const displayZ = z.map(row => row.slice());
     const nRows = displayZ.length;
-    const nCols = displayZ[0].length;
+    const nCols = displayZ[0]?.length || 0;
 
     for (let j = 0; j < nCols; j++) {
         const vals = [];
@@ -414,20 +583,184 @@ async function loadCompareHeatmap() {
         }
     }
 
+    return displayZ;
+}
+
+function firstEigenpair(matrix, blockedVector = null) {
+    const n = matrix.length;
+    let vector = Array.from({ length: n }, (_, i) => (blockedVector ? i + 1 : 1));
+
+    if (blockedVector) {
+        const projection = vector.reduce((acc, v, i) => acc + v * blockedVector[i], 0);
+        vector = vector.map((v, i) => v - projection * blockedVector[i]);
+    }
+    const initialNorm = Math.sqrt(vector.reduce((acc, v) => acc + v * v, 0));
+    vector = initialNorm ? vector.map(v => v / initialNorm) : Array.from({ length: n }, () => 0);
+
+    for (let iter = 0; iter < 80; iter++) {
+        let next = matrix.map(row => row.reduce((acc, v, i) => acc + v * vector[i], 0));
+        if (blockedVector) {
+            const projection = next.reduce((acc, v, i) => acc + v * blockedVector[i], 0);
+            next = next.map((v, i) => v - projection * blockedVector[i]);
+        }
+        const norm = Math.sqrt(next.reduce((acc, v) => acc + v * v, 0));
+        if (norm === 0) break;
+        vector = next.map(v => v / norm);
+    }
+
+    const multiplied = matrix.map(row => row.reduce((acc, v, i) => acc + v * vector[i], 0));
+    const value = vector.reduce((acc, v, i) => acc + v * multiplied[i], 0);
+    return { value, vector };
+}
+
+function renderComparePca(data, displayZ) {
+    if (!data.x.length || !data.y.length) {
+        clearComparePca("No data available for PCA");
+        return;
+    }
+
+    if (data.x.length < 2 || data.y.length < 2) {
+        clearComparePca("PCA needs at least two endpoints and two chemicals");
+        return;
+    }
+
+    const matrix = displayZ.map(row => row.map(v => (v === null || Number.isNaN(v)) ? 0 : v));
+    const nRows = matrix.length;
+    const nCols = matrix[0].length;
+    const colMeans = Array.from({ length: nCols }, (_, j) =>
+        matrix.reduce((acc, row) => acc + row[j], 0) / nRows
+    );
+    const centered = matrix.map(row => row.map((v, j) => v - colMeans[j]));
+    const covariance = Array.from({ length: nCols }, (_, a) =>
+        Array.from({ length: nCols }, (_, b) =>
+            centered.reduce((acc, row) => acc + row[a] * row[b], 0) / Math.max(1, nRows - 1)
+        )
+    );
+
+    const pc1 = firstEigenpair(covariance);
+    const pc2 = firstEigenpair(covariance, pc1.vector);
+    const totalVariance = covariance.reduce((acc, row, i) => acc + row[i], 0);
+    const pc1Pct = totalVariance > 0 ? Math.max(0, pc1.value) / totalVariance * 100 : 0;
+    const pc2Pct = totalVariance > 0 ? Math.max(0, pc2.value) / totalVariance * 100 : 0;
+    const scores = centered.map(row => [
+        row.reduce((acc, v, j) => acc + v * pc1.vector[j], 0),
+        row.reduce((acc, v, j) => acc + v * pc2.vector[j], 0)
+    ]);
+
+    Plotly.newPlot("compare-pca", [{
+        x: scores.map(row => row[0]),
+        y: scores.map(row => row[1]),
+        text: data.y,
+        customdata: data.y,
+        type: "scatter",
+        mode: "markers",
+        marker: {
+            size: 9,
+            color: scores.map(row => row[0]),
+            colorscale: "Viridis",
+            showscale: false,
+            line: { color: "#ffffff", width: 0.7 }
+        },
+        hovertemplate:
+            "Chemical: %{customdata}<br>" +
+            "PC1: %{x:.3f}<br>" +
+            "PC2: %{y:.3f}<extra></extra>"
+    }], {
+        title: "PCA of current heatmap values",
+        height: 720,
+        xaxis: { title: `PC1 (${pc1Pct.toFixed(1)}%)`, zeroline: true },
+        yaxis: { title: `PC2 (${pc2Pct.toFixed(1)}%)`, zeroline: true },
+        margin: { l: 70, r: 30, t: 60, b: 70 }
+    }, { responsive: true });
+}
+
+async function loadCompareHeatmap() {
+    const { organism_id, effect_type, endpoint_name, metric, clustering, toxicity_category, rr_group } = compareSelections();
+
+    if (!organism_id) {
+        Plotly.newPlot("compare-heatmap", [], {
+            title: "Select an organism",
+            xaxis: { visible: false },
+            yaxis: { visible: false }
+        }, { responsive: true });
+        clearComparePca("Select an organism");
+        return;
+    }
+
+    const params = new URLSearchParams({ organism_id, metric, clustering });
+    if (effect_type) params.append("effect_type", effect_type);
+    if (endpoint_name) params.append("endpoint_name", endpoint_name);
+    if (toxicity_category) params.append("toxicity_category", toxicity_category);
+    if (rr_group) params.append("rr_group", rr_group);
+
+    const response = await fetch(`${window.APP_ROOT}/api/compare/heatmap?${params.toString()}`);
+
+    if (!response.ok) {
+        const text = await response.text();
+        console.error("Compare heatmap error:", response.status, text);
+        throw new Error(`Compare heatmap request failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.x.length || !data.y.length) {
+        Plotly.newPlot("compare-heatmap", [], {
+            title: "No data available for the selected filters",
+            xaxis: { visible: false },
+            yaxis: { visible: false }
+        }, { responsive: true });
+        clearComparePca("No data available for the selected filters");
+        return;
+    }
+
+    const yPositions = data.y.map((_, i) => i);
+
+    // Keep the raw values for hover
+    const rawZ = data.z.map(row => row.slice());
+
+    // Normalize by endpoint (column-wise z-score) for color display
+    const displayZ = normalizeHeatmapColumns(data.z);
+    renderComparePca(data, displayZ);
+
     const titleMap = {
         difference: "Chemical comparison heatmap — Difference",
-        zscore: "Chemical comparison heatmap — Z-score"
+        zscore: "Chemical comparison heatmap — Z-score",
+        response_score: "Chemical comparison heatmap — Dose-response evidence"
     };
 
     // Dynamic height so all chemicals are actually visible
     const dynamicHeight = Math.max(900, data.y.length * 18);
 
-    Plotly.newPlot("compare-heatmap", [{
+    const dendrogramX = [];
+    const dendrogramY = [];
+    (data.dendrogram || []).forEach(segment => {
+        dendrogramX.push(...segment.x, null);
+        dendrogramY.push(...segment.y, null);
+    });
+
+    const hasDendrogram = dendrogramX.length > 0;
+    const traces = [];
+    if (hasDendrogram) {
+        traces.push({
+            x: dendrogramX,
+            y: dendrogramY,
+            type: "scatter",
+            mode: "lines",
+            line: { color: "#415a70", width: 1.2 },
+            hoverinfo: "skip",
+            showlegend: false,
+            xaxis: "x",
+            yaxis: "y"
+        });
+    }
+
+    traces.push({
         z: displayZ,
         x: data.x,
-        y: data.y,
+        y: yPositions,
         customdata: rawZ.map((row, i) =>
             row.map((rawVal, j) => [
+                data.y[i],
                 rawVal,
                 data.customdata[i][j][0],  // n_experiments
                 data.customdata[i][j][1],  // n_with_control
@@ -435,19 +768,32 @@ async function loadCompareHeatmap() {
             ])
         ),
         type: "heatmap",
+        xaxis: "x2",
+        yaxis: "y",
         hoverongaps: false,
         hovertemplate:
-            "Chemical: %{y}<br>" +
+            "Chemical: %{customdata[0]}<br>" +
             "Endpoint: %{x}<br>" +
-            "Raw value: %{customdata[0]}<br>" +
+            "Raw value: %{customdata[1]}<br>" +
             "Displayed color value: %{z}<br>" +
-            "Experiments: %{customdata[1]}<br>" +
-            "With controls: %{customdata[2]}<br>" +
-            "Without controls: %{customdata[3]}<extra></extra>"
-    }], {
+            "Experiments: %{customdata[2]}<br>" +
+            "With controls: %{customdata[3]}<br>" +
+            "Without controls: %{customdata[4]}<extra></extra>"
+    });
+
+    Plotly.newPlot("compare-heatmap", traces, {
         title: (titleMap[data.metric] || "Chemical comparison heatmap") + " (endpoint-normalized colors)",
         height: dynamicHeight,
         xaxis: {
+            domain: hasDendrogram ? [0, 0.13] : [0, 0],
+            autorange: "reversed",
+            showgrid: false,
+            zeroline: false,
+            showticklabels: false,
+            visible: hasDendrogram
+        },
+        xaxis2: {
+            domain: hasDendrogram ? [0.17, 1] : [0, 1],
             title: "Endpoint",
             automargin: true,
             tickangle: -60,
@@ -457,9 +803,10 @@ async function loadCompareHeatmap() {
             title: "Chemical",
             automargin: true,
             tickmode: "array",
-            tickvals: data.y,
+            tickvals: yPositions,
             ticktext: data.y,
-            tickfont: { size: 10 }
+            tickfont: { size: 10 },
+            range: [data.y.length - 0.5, -0.5]
         },
         margin: { l: 260, r: 30, t: 60, b: 260 }
     }, { responsive: true });
@@ -569,7 +916,11 @@ document.getElementById("compare-organism-select").addEventListener("change", as
     compareTableShowAll = false;
     document.getElementById("compare-category-select").value = "";
     document.getElementById("compare-endpoint-select").value = "";
+    document.getElementById("compare-toxicity-category-select").value = "";
+    document.getElementById("compare-rr-group-select").value = "";
     await loadCompareOptions();
+    await loadToxicityCategories();
+    await loadRrGroups();
     await refreshCompare();
 });
 
@@ -586,6 +937,21 @@ document.getElementById("compare-endpoint-select").addEventListener("change", as
 });
 
 document.getElementById("compare-metric-select").addEventListener("change", async function() {
+    await loadCompareHeatmap();
+    updateCompareUrl();
+});
+
+document.getElementById("compare-clustering-select").addEventListener("change", async function() {
+    await loadCompareHeatmap();
+    updateCompareUrl();
+});
+
+document.getElementById("compare-toxicity-category-select").addEventListener("change", async function() {
+    await loadCompareHeatmap();
+    updateCompareUrl();
+});
+
+document.getElementById("compare-rr-group-select").addEventListener("change", async function() {
     await loadCompareHeatmap();
     updateCompareUrl();
 });
@@ -612,6 +978,8 @@ Plotly.newPlot("compare-heatmap", [], {
 (async function initCompareFromUrl() {
     if (document.getElementById("compare-organism-select").value) {
         await loadCompareOptions();
+        await loadToxicityCategories(initialCompareSelections.toxicity_category);
+        await loadRrGroups(initialCompareSelections.rr_group);
 
         if (initialCompareSelections.effect_type) {
             document.getElementById("compare-category-select").value = initialCompareSelections.effect_type;
