@@ -74,6 +74,8 @@
                 </div>
             </div>
 
+            <div id="exposure-unit-warning" class="warning-banner" hidden></div>
+
         <div class="section-card">
             <div class="section-card-header">
                 <h2 class="section-heading-help">
@@ -99,6 +101,7 @@
                             <li><strong>Mean response</strong>: mean endpoint value across all tested concentrations for each chemical</li>
                             <li><strong>Max. response</strong>: maximum recorded endpoint value across all tested concentrations for each chemical</li>
                             <li><strong>Response at max. concentration</strong>: mean endpoint value at the highest tested concentration for each chemical</li>
+                            <li><strong>Empirical PoD</strong>: lowest tested concentration whose mean response departs from the matched control by at least 2 control standard deviations, or 20% of the control mean when control variability is unavailable</li>
                         </ul>
                     </div>
                 </div>
@@ -108,6 +111,7 @@
                         <option value="mean_response">Mean response</option>
                         <option value="max_response">Max. response</option>
                         <option value="response_at_max">Response at max. concentration</option>
+                        <option value="pod">Empirical PoD</option>
                     </select>
                 </label>
             </div>
@@ -219,6 +223,26 @@ function getSelections() {
 
 function getRankingMode() {
     return document.getElementById("ranking-mode-select").value || "mean_response";
+}
+
+function updateExposureUnitWarning(unitCheck) {
+    const warningBox = document.getElementById("exposure-unit-warning");
+    if (!unitCheck || !unitCheck.has_mixed_units) {
+        warningBox.hidden = true;
+        warningBox.textContent = "";
+        return;
+    }
+
+    const units = (unitCheck.units || []).map(unit => String(unit));
+    warningBox.replaceChildren();
+    const title = document.createElement("strong");
+    title.textContent = "Exposure concentration unit warning: ";
+    warningBox.append(
+        title,
+        `this endpoint contains records with multiple chemical exposure concentration units (${units.join(", ")}). `,
+        "Ranking and dose-response plots compare raw concentration values, so interpret these results with care."
+    );
+    warningBox.hidden = false;
 }
 
 function applyHeaderTooltips(api) {
@@ -335,6 +359,7 @@ async function loadInfoPanels() {
         organismBox.innerHTML = '<span style="color:#6b7c8d;">Select an organism.</span>';
         categoryBox.innerHTML = '<span style="color:#6b7c8d;">Select an endpoint category.</span>';
         endpointBox.innerHTML = '<span style="color:#6b7c8d;">Select an endpoint.</span>';
+        updateExposureUnitWarning(null);
         return;
     }
 
@@ -344,6 +369,7 @@ async function loadInfoPanels() {
 
     const response = await fetch(`${window.APP_ROOT}/api/explore/info?${params.toString()}`);
     const data = await response.json();
+    updateExposureUnitWarning(data.exposure_unit_check);
 
     if (data.organism) {
         organismBox.innerHTML = `
@@ -500,6 +526,7 @@ async function loadRanking() {
 
     const rankingTitles = {
         mean_response: "Chemicals ranked by mean response",
+        pod: "Chemicals ranked by empirical point of departure",
         max_response: "Chemicals ranked by maximum recorded response",
         response_at_max: "Chemicals ranked by response at highest tested concentration"
     };

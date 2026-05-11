@@ -161,6 +161,10 @@ def explore_info():
     organism_info = None
     category_info = None
     endpoint_info = None
+    exposure_unit_check = {
+        "has_mixed_units": False,
+        "units": [],
+    }
 
     if organism_id:
         organism_rows = fetch_all("""
@@ -239,10 +243,43 @@ def explore_info():
         if endpoint_row:
             endpoint_info = endpoint_row[0]
 
+        exposure_unit_rows = fetch_all("""
+            SELECT DISTINCT
+                pc.exposure_concentration_unit
+            FROM phenotype_record pr
+            JOIN phenotype_condition pc
+              ON pr.phenotype_condition_id = pc.phenotype_condition_id
+            JOIN phenotype_experiment pe
+              ON pc.phenotype_experiment_id = pe.phenotype_experiment_id
+            JOIN biosystem b
+              ON pe.biosystem_id = b.biosystem_id
+            JOIN phenotype_effect pef
+              ON pr.phenotype_effect_id = pef.phenotype_effect_id
+            WHERE
+                b.organism_id = :organism_id
+                AND pef.type = :effect_type
+                AND pef.name = :endpoint_name
+                AND pc.is_control = FALSE
+                AND pc.exposure_concentration IS NOT NULL
+                AND pc.exposure_concentration_unit IS NOT NULL
+                AND TRIM(pc.exposure_concentration_unit) <> ''
+            ORDER BY pc.exposure_concentration_unit
+        """, {
+            "organism_id": organism_id,
+            "effect_type": effect_type,
+            "endpoint_name": endpoint_name,
+        })
+        exposure_units = [row["exposure_concentration_unit"] for row in exposure_unit_rows]
+        exposure_unit_check = {
+            "has_mixed_units": len(exposure_units) > 1,
+            "units": exposure_units,
+        }
+
     return jsonify({
         "organism": organism_info,
         "category": category_info,
         "endpoint": endpoint_info,
+        "exposure_unit_check": exposure_unit_check,
     })
 
 
@@ -542,12 +579,117 @@ def explore_ranking():
         "response_at_max",
         "mean_response",
         "max_response",
+        "pod",
     } else "mean_response"
 
     if not organism_id or not effect_type or not endpoint_name:
         return jsonify({"rows": [], "endpoint_label": None, "endpoint_unit": None})
 
-    if ranking_mode == "response_at_max":
+    order_clause = "mean_value DESC, chemical_name"
+
+    if ranking_mode == "pod":
+        order_clause = "mean_value ASC, chemical_name"
+        aggregation_cte = """
+        WITH numeric_records AS (
+            SELECT
+                c.ptx_code,
+                c.full_ptx_code,
+                c.name AS chemical_name,
+                pe.phenotype_experiment_id,
+                pe.internal_experiment_batch_id AS batch_id,
+                pef.display_name AS endpoint_label,
+                pef.unit AS endpoint_unit,
+                pc.is_control,
+                pc.exposure_concentration,
+                pc.exposure_concentration_unit,
+                CAST(pr.effect_value AS DOUBLE PRECISION) AS value_num
+            FROM phenotype_record pr
+            JOIN phenotype_condition pc
+              ON pr.phenotype_condition_id = pc.phenotype_condition_id
+            JOIN phenotype_experiment pe
+              ON pc.phenotype_experiment_id = pe.phenotype_experiment_id
+            JOIN biosystem b
+              ON pe.biosystem_id = b.biosystem_id
+            JOIN phenotype_effect pef
+              ON pr.phenotype_effect_id = pef.phenotype_effect_id
+            LEFT JOIN chemical c
+              ON pc.ptx_code = c.ptx_code
+            WHERE
+                b.organism_id = :organism_id
+                AND pef.type = :effect_type
+                AND pef.name = :endpoint_name
+                AND pr.effect_value IS NOT NULL
+                AND pr.effect_value ~ '^[+-]?([0-9]*[.])?[0-9]+$'
+        ),
+        control_stats AS (
+            SELECT
+                phenotype_experiment_id,
+                batch_id,
+                AVG(value_num) AS control_mean,
+                STDDEV_SAMP(value_num) AS control_sd,
+                COUNT(*) AS n_control
+            FROM numeric_records
+            WHERE is_control = TRUE
+            GROUP BY phenotype_experiment_id, batch_id
+        ),
+        exposure_stats AS (
+            SELECT
+                ptx_code,
+                full_ptx_code,
+                chemical_name,
+                phenotype_experiment_id,
+                batch_id,
+                exposure_concentration,
+                exposure_concentration_unit,
+                AVG(value_num) AS exposure_mean
+            FROM numeric_records
+            WHERE is_control = FALSE
+              AND ptx_code IS NOT NULL
+              AND exposure_concentration IS NOT NULL
+            GROUP BY
+                ptx_code,
+                full_ptx_code,
+                chemical_name,
+                phenotype_experiment_id,
+                batch_id,
+                exposure_concentration,
+                exposure_concentration_unit
+        ),
+        pod_candidates AS (
+            SELECT
+                es.full_ptx_code,
+                es.chemical_name,
+                es.exposure_concentration,
+                es.exposure_concentration_unit
+            FROM exposure_stats es
+            JOIN control_stats cs
+              ON es.phenotype_experiment_id = cs.phenotype_experiment_id
+             AND es.batch_id IS NOT DISTINCT FROM cs.batch_id
+            WHERE
+                ABS(es.exposure_mean - cs.control_mean) >=
+                    CASE
+                        WHEN cs.control_sd IS NOT NULL AND cs.control_sd > 0
+                            THEN 2 * cs.control_sd
+                        WHEN cs.control_mean <> 0
+                            THEN ABS(cs.control_mean) * 0.2
+                        ELSE NULL
+                    END
+        ),
+        endpoint_at_max AS (
+            SELECT
+                full_ptx_code,
+                chemical_name,
+                'Empirical PoD' AS endpoint_label,
+                exposure_concentration_unit AS endpoint_unit,
+                MIN(exposure_concentration) AS mean_value
+            FROM pod_candidates
+            GROUP BY
+                full_ptx_code,
+                chemical_name,
+                exposure_concentration_unit
+        )
+        """
+    elif ranking_mode == "response_at_max":
         aggregation_cte = """
         WITH numeric_records AS (
             SELECT
@@ -662,15 +804,17 @@ def explore_ranking():
             endpoint_unit,
             mean_value
         FROM endpoint_at_max
-        ORDER BY mean_value DESC, chemical_name
+        ORDER BY {order_clause}
     """, {
         "organism_id": organism_id,
         "effect_type": effect_type,
         "endpoint_name": endpoint_name,
     })
 
-    endpoint_label = rows[0]["endpoint_label"] if rows else endpoint_name
-    endpoint_unit = rows[0]["endpoint_unit"] if rows else None
+    endpoint_labels = {row["endpoint_label"] for row in rows if row["endpoint_label"]}
+    endpoint_units = {row["endpoint_unit"] for row in rows if row["endpoint_unit"]}
+    endpoint_label = next(iter(endpoint_labels)) if len(endpoint_labels) == 1 else endpoint_name
+    endpoint_unit = next(iter(endpoint_units)) if len(endpoint_units) == 1 else None
 
     return jsonify({
         "rows": rows,
