@@ -292,6 +292,16 @@ function compareSelections() {
     };
 }
 
+function updateCompareMetricNote() {
+    const metric = document.getElementById("compare-metric-select").value;
+    const note = document.getElementById("compare-metric-note");
+    if (metric === "zscore") {
+        note.textContent = "Z-score colors are centered on 0, with values from -1 to +1 shown in grey as a non-significant range.";
+    } else {
+        note.textContent = "Heatmap colors are normalized by endpoint so endpoints with different units and scales can be compared visually.";
+    }
+}
+
 function updateCompareUrl() {
     const { organism_id, effect_type, endpoint_name, metric, clustering, toxicity_category, rr_group } = compareSelections();
     const params = new URLSearchParams();
@@ -524,6 +534,65 @@ function normalizeHeatmapColumns(z) {
     return displayZ;
 }
 
+function maxAbsHeatmapValue(z) {
+    let maxAbs = 0;
+    z.forEach(row => {
+        row.forEach(value => {
+            if (value !== null && !Number.isNaN(value)) {
+                maxAbs = Math.max(maxAbs, Math.abs(value));
+            }
+        });
+    });
+    return maxAbs;
+}
+
+function zScoreHeatmapColorConfig(z) {
+    const limit = Math.max(1, maxAbsHeatmapValue(z));
+    const grey = "#d9d9d9";
+
+    if (limit <= 1) {
+        return {
+            zmin: -1,
+            zmax: 1,
+            colorscale: [[0, grey], [1, grey]],
+            colorbar: { title: "Z-score" }
+        };
+    }
+
+    const negativeThreshold = (limit - 1) / (2 * limit);
+    const positiveThreshold = (limit + 1) / (2 * limit);
+    const edge = 0.0001;
+    const negativeMidpoint = negativeThreshold / 2;
+    const positiveMidpoint = positiveThreshold + (1 - positiveThreshold) / 2;
+
+    return {
+        zmin: -limit,
+        zmax: limit,
+        colorscale: [
+            [0, "#2166ac"],
+            [negativeMidpoint, "#67a9cf"],
+            [Math.max(0, negativeThreshold - edge), "#c9dce8"],
+            [negativeThreshold, grey],
+            [positiveThreshold, grey],
+            [Math.min(1, positiveThreshold + edge), "#edc8bf"],
+            [positiveMidpoint, "#ef8a62"],
+            [1, "#b2182b"]
+        ],
+        colorbar: {
+            title: "Z-score",
+            tickmode: "array",
+            tickvals: [-limit, -1, 0, 1, limit],
+            ticktext: [
+                (-limit).toFixed(2),
+                "-1",
+                "0",
+                "1",
+                limit.toFixed(2)
+            ]
+        }
+    };
+}
+
 function firstEigenpair(matrix, blockedVector = null) {
     const n = matrix.length;
     let vector = Array.from({ length: n }, (_, i) => (blockedVector ? i + 1 : 1));
@@ -614,6 +683,7 @@ function renderComparePca(data, displayZ) {
 
 async function loadCompareHeatmap() {
     const { organism_id, effect_type, endpoint_name, metric, clustering, toxicity_category, rr_group } = compareSelections();
+    updateCompareMetricNote();
 
     if (!organism_id) {
         Plotly.newPlot("compare-heatmap", [], {
@@ -656,8 +726,10 @@ async function loadCompareHeatmap() {
     // Keep the raw values for hover
     const rawZ = data.z.map(row => row.slice());
 
-    // Normalize by endpoint (column-wise z-score) for color display
-    const displayZ = normalizeHeatmapColumns(data.z);
+    const usesZScoreColorScale = data.metric === "zscore";
+    const displayZ = usesZScoreColorScale
+        ? data.z.map(row => row.slice())
+        : normalizeHeatmapColumns(data.z);
     renderComparePca(data, displayZ);
 
     const titleMap = {
@@ -692,6 +764,15 @@ async function loadCompareHeatmap() {
         });
     }
 
+    const colorConfig = usesZScoreColorScale
+        ? zScoreHeatmapColorConfig(displayZ)
+        : {
+            colorscale: "RdBu",
+            reversescale: true,
+            zmid: 0,
+            colorbar: { title: "Endpoint-normalized value" }
+        };
+
     traces.push({
         z: displayZ,
         x: data.x,
@@ -706,6 +787,7 @@ async function loadCompareHeatmap() {
             ])
         ),
         type: "heatmap",
+        ...colorConfig,
         xaxis: "x2",
         yaxis: "y",
         hoverongaps: false,
@@ -720,7 +802,8 @@ async function loadCompareHeatmap() {
     });
 
     Plotly.newPlot("compare-heatmap", traces, {
-        title: (titleMap[data.metric] || "Chemical comparison heatmap") + " (endpoint-normalized colors)",
+        title: (titleMap[data.metric] || "Chemical comparison heatmap") +
+            (usesZScoreColorScale ? " (grey = -1 to +1)" : " (endpoint-normalized colors)"),
         height: dynamicHeight,
         xaxis: {
             domain: hasDendrogram ? [0, 0.13] : [0, 0],
