@@ -537,11 +537,18 @@ def explore_ranking():
     organism_id = request.args.get("organism_id", type=int)
     effect_type = request.args.get("effect_type", type=str)
     endpoint_name = request.args.get("endpoint_name", type=str)
+    ranking_mode = request.args.get("ranking_mode", default="mean_response", type=str)
+    ranking_mode = ranking_mode if ranking_mode in {
+        "response_at_max",
+        "mean_response",
+        "max_response",
+    } else "mean_response"
 
     if not organism_id or not effect_type or not endpoint_name:
         return jsonify({"rows": [], "endpoint_label": None, "endpoint_unit": None})
 
-    rows = fetch_all("""
+    if ranking_mode == "response_at_max":
+        aggregation_cte = """
         WITH numeric_records AS (
             SELECT
                 c.ptx_code,
@@ -597,6 +604,57 @@ def explore_ranking():
                 nr.endpoint_label,
                 nr.endpoint_unit
         )
+        """
+    else:
+        metric_expr = "AVG(value_num)" if ranking_mode == "mean_response" else "MAX(value_num)"
+        aggregation_cte = f"""
+        WITH numeric_records AS (
+            SELECT
+                c.ptx_code,
+                c.full_ptx_code,
+                c.name AS chemical_name,
+                pef.display_name AS endpoint_label,
+                pef.unit AS endpoint_unit,
+                pc.is_control,
+                CAST(pr.effect_value AS DOUBLE PRECISION) AS value_num
+            FROM phenotype_record pr
+            JOIN phenotype_condition pc
+              ON pr.phenotype_condition_id = pc.phenotype_condition_id
+            JOIN phenotype_experiment pe
+              ON pc.phenotype_experiment_id = pe.phenotype_experiment_id
+            JOIN biosystem b
+              ON pe.biosystem_id = b.biosystem_id
+            JOIN phenotype_effect pef
+              ON pr.phenotype_effect_id = pef.phenotype_effect_id
+            LEFT JOIN chemical c
+              ON pc.ptx_code = c.ptx_code
+            WHERE
+                b.organism_id = :organism_id
+                AND pef.type = :effect_type
+                AND pef.name = :endpoint_name
+                AND pr.effect_value IS NOT NULL
+                AND pr.effect_value ~ '^[+-]?([0-9]*[.])?[0-9]+$'
+                AND pc.is_control = FALSE
+                AND c.ptx_code IS NOT NULL
+        ),
+        endpoint_at_max AS (
+            SELECT
+                full_ptx_code,
+                chemical_name,
+                endpoint_label,
+                endpoint_unit,
+                {metric_expr} AS mean_value
+            FROM numeric_records
+            GROUP BY
+                full_ptx_code,
+                chemical_name,
+                endpoint_label,
+                endpoint_unit
+        )
+        """
+
+    rows = fetch_all(f"""
+        {aggregation_cte}
         SELECT
             full_ptx_code,
             chemical_name,

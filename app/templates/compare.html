@@ -27,7 +27,7 @@
                     {% endfor %}
                 </select>
             </label>
-    
+
             <label>
                 Endpoint category
                 <select id="compare-category-select" disabled>
@@ -48,7 +48,7 @@
         <!-- <div class="section-card">
             <div class="section-card-header">
                 <h2>Select an endpoint:</h2>
-            </div> -->   
+            </div> -->
 
         <div id="explore-info" class="info-sections">
             <div class="info-card">
@@ -86,7 +86,7 @@
                     <div class="selector-help-group">
                         <label>
                             <div>
-                                Metric: 
+                                Metric:
                                 <span class="selector-help" tabindex="0" aria-label="Metric help">?</span>
                                 <div class="selector-tooltip" role="tooltip">
                                     Value represented by heatmap cells:
@@ -242,68 +242,6 @@
         margin-bottom: 0.75rem;
     }
 
-    .selector-help-group {
-        position: relative;
-        margin-right:0.8rem;
-    }
-
-    .selector-help-group label {
-        display: grid;
-        gap: 0.25rem;
-        width: max-content;
-    }
-
-    .selector-help-group label > div:first-child {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.75rem;
-        width: 100%;
-    }
-
-    .selector-help-group select {
-        width: 100%;
-    }
-
-    .selector-help {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 1rem;
-        height: 1rem;
-        border-radius: 50%;
-        background: #004880;
-        color: white;
-        font-size: 0.8rem;
-        font-weight: 700;
-        line-height: 1;
-        cursor: help;
-        user-select: none;
-        margin-bottom: 0.15rem;
-    }
-
-    .selector-tooltip {
-        display: none;
-        position: absolute;
-        left: 0;
-        top: calc(100% + 0.35rem);
-        z-index: 10;
-        width: 28rem;
-        max-width: min(28rem, 82vw);
-        padding: 0.65rem 0.75rem;
-        border: 1px solid #cdd9e4;
-        border-radius: 8px;
-        background: #ffffff;
-        color: #243746;
-        box-shadow: 0 6px 18px rgba(0, 72, 128, 0.16);
-        font-size: 0.9rem;
-        line-height: 1.45;
-    }
-
-    .selector-help:hover + .selector-tooltip,
-    .selector-help:focus + .selector-tooltip {
-        display: block;
-    }
 </style>
 
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>

@@ -28,14 +28,14 @@
                     {% endfor %}
                 </select>
             </label>
-    
+
             <label>
                 <b>Endpoint category</b>
                 <select id="category-select" disabled>
                     <option value="">Select endpoint category...</option>
                 </select>
             </label>
-    
+
             <label>
                 <b>Endpoint</b>
                 <select id="endpoint-select" disabled>
@@ -50,13 +50,13 @@
             </label>
         </div>
     </aside>
-    
+
     <main class="analysis-main">
         <!-- <div class="section-card">
             <div class="section-card-header">
                 <h2>Your selection</h2>
             </div> -->
-            
+
             <div id="explore-info" class="info-sections">
                 <div class="info-card">
                     <h3>Organism</h3>
@@ -67,7 +67,7 @@
                     <h3>Endpoint category</h3>
                     <div id="category-info" class="info-content">Select an endpoint category.</div>
                 </div>
-                
+
                 <div class="info-card">
                     <h3>Endpoint</h3>
                     <div id="endpoint-info" class="info-content">Select an endpoint.</div>
@@ -76,26 +76,56 @@
 
         <div class="section-card">
             <div class="section-card-header">
-                <h2>Endpoint distribution</h2>
-                <p class="section-note">
-                    Data for all chemicals.
-                </p>
+                <h2 class="section-heading-help">
+                    Endpoint distribution
+                    <span class="selector-help" tabindex="0" aria-label="Endpoint distribution help">?</span>
+                    <span class="selector-tooltip" role="tooltip">
+                        Compares the distribution of values for the selected endpoint <strong>across all chemicals</strong> between controls and chemical exposures.
+                    </span>
+                </h2>
             </div>
             <div id="histogram" class="chart-box" style="min-height: 500px;"></div>
         </div>
 
         <div class="section-card">
             <div class="section-card-header">
-                <h2>Chemical ranking</h2>
+                <div class="section-heading-help">
+                    <h2>Chemical ranking</h2>
+                    <span class="selector-help" tabindex="0" aria-label="Chemical ranking help">?</span>
+                    <div class="selector-tooltip" role="tooltip">
+                        Ranks chemicals using a response summary metric for the selected endpoint. Only non-control numeric endpoint values are included.
+                        The options are:
+                        <ul>
+                            <li><strong>Mean response</strong>: mean endpoint value across all tested concentrations for each chemical</li>
+                            <li><strong>Max. response</strong>: maximum recorded endpoint value across all tested concentrations for each chemical</li>
+                            <li><strong>Response at max. concentration</strong>: mean endpoint value at the highest tested concentration for each chemical</li>
+                        </ul>
+                    </div>
+                </div>
+                <label class="section-note" style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                    Rank by:
+                    <select id="ranking-mode-select">
+                        <option value="mean_response">Mean response</option>
+                        <option value="max_response">Max. response</option>
+                        <option value="response_at_max">Response at max. concentration</option>
+                    </select>
+                </label>
             </div>
             <div id="ranking-plot" class="chart-box" style="min-height: 500px;"></div>
         </div>
 
         <div class="section-card">
             <div class="section-card-header">
-                <h2>Dose-response curves</h2>
+                <h2 class="section-heading-help">
+                    Dose-response curves
+                    <span class="selector-help" tabindex="0" aria-label="Dose-response curves help">?</span>
+                    <span class="selector-tooltip" role="tooltip">
+                        Shows endpoint response against exposure concentration for the <strong>selected chemical</strong>, grouped by experiment batch and exposure duration.<br>
+                        Each line corresponds to a different experiment batch (for both exposures and controls).
+                    </span>
+                </h2>
                 <p class="section-note">
-                    Each line corresponds to a different experiment batch (for both exposures and controls).
+                    
                 </p>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:left; gap:1rem; flex-wrap:wrap;">
@@ -187,6 +217,10 @@ function getSelections() {
     };
 }
 
+function getRankingMode() {
+    return document.getElementById("ranking-mode-select").value || "mean_response";
+}
+
 function applyHeaderTooltips(api) {
     const columnDescriptions = {{ columnDes| tojson }};
     const visibleHeader = $(api.table().container()).find('.dataTables_scrollHead thead tr:first-child th');
@@ -207,6 +241,7 @@ function updateUrlFromSelections() {
     if (effect_type) params.set("effect_type", effect_type);
     if (endpoint_name) params.set("endpoint_name", endpoint_name);
     if (ptx_code) params.set("ptx_code", ptx_code);
+    if (getRankingMode() !== "mean_response") params.set("ranking_mode", getRankingMode());
     if (document.getElementById("dose-log-scale").checked) params.set("log_x", "1");
 
     const newUrl = `${window.location.pathname}?${params.toString()}`;
@@ -220,9 +255,13 @@ function applySelectionsFromUrl() {
     const effect_type = params.get("effect_type") || "";
     const endpoint_name = params.get("endpoint_name") || "";
     const ptx_code = params.get("ptx_code") || "";
+    const ranking_mode = params.get("ranking_mode") || "mean_response";
     const log_x = params.get("log_x") === "1";
 
     document.getElementById("organism-select").value = organism_id;
+    if ([...document.getElementById("ranking-mode-select").options].some(opt => opt.value === ranking_mode)) {
+        document.getElementById("ranking-mode-select").value = ranking_mode;
+    }
     document.getElementById("dose-log-scale").checked = log_x;
 
     return { effect_type, endpoint_name, ptx_code };
@@ -346,7 +385,7 @@ async function loadHistogram() {
 
     if (!organism_id || !effect_type || !endpoint_name) {
         Plotly.newPlot("histogram", [], {
-            title: { 
+            title: {
                 text: "Select organism, endpoint category and endpoint",
                 font: {
                     size: 14
@@ -422,10 +461,11 @@ async function loadHistogram() {
 
 async function loadRanking() {
     const { organism_id, effect_type, endpoint_name } = getSelections();
+    const rankingMode = getRankingMode();
 
     if (!organism_id || !effect_type || !endpoint_name) {
         Plotly.newPlot("ranking-plot", [], {
-            title: { 
+            title: {
                 text: "Select organism, endpoint category and endpoint",
                 font: {
                     size: 14
@@ -437,7 +477,7 @@ async function loadRanking() {
         return;
     }
 
-    const params = new URLSearchParams({ organism_id, effect_type, endpoint_name });
+    const params = new URLSearchParams({ organism_id, effect_type, endpoint_name, ranking_mode: rankingMode });
     const response = await fetch(`${window.APP_ROOT}/api/explore/ranking?${params.toString()}`);
     const data = await response.json();
 
@@ -458,12 +498,18 @@ async function loadRanking() {
         yTitle = `${yTitle} (${data.endpoint_unit})`;
     }
 
+    const rankingTitles = {
+        mean_response: "Chemicals ranked by mean response",
+        max_response: "Chemicals ranked by maximum recorded response",
+        response_at_max: "Chemicals ranked by response at highest tested concentration"
+    };
+
     Plotly.newPlot("ranking-plot", [{
         x: labels,
         y: values,
         type: "bar"
     }], {
-        title: "Chemical ranking at maximum tested concentration",
+        title: rankingTitles[rankingMode] || "Chemical ranking",
         xaxis: { title: "Chemical", tickangle: -45, automargin: true },
         yaxis: { title: yTitle },
         margin: { l: 60, r: 20, t: 50, b: 180 }
@@ -480,7 +526,7 @@ async function loadDoseResponse() {
         container.innerHTML = '<div id="dose-response-empty" class="chart-box" style="min-height: 420px;"></div>';
 
         Plotly.newPlot("dose-response-empty", [], {
-            title: { 
+            title: {
                 text: "Select organism, endpoint category, endpoint and chemical",
                 font: {
                     size: 14
@@ -619,8 +665,8 @@ async function loadDoseResponse() {
         Plotly.newPlot(`dose-response-${idx}`, traces, {
             title: {
                 text: `Dose-response — ${chemicalLabel}<br>${duration}`,
-                font: { size: 13}        
-            }, 
+                font: { size: 13}
+            },
             xaxis: {
                 title: xTitle,
                 type: document.getElementById("dose-log-scale").checked ? "log" : "linear"
@@ -654,10 +700,10 @@ async function loadTable() {
     if (ptx_code) params.append("ptx_code", ptx_code);
     if (exploreTableShowAll) params.append("show_all", "1");
 
-    
+
     const response = await fetch(`${window.APP_ROOT}/api/explore/table?${params.toString()}`);
     const data = await response.json();
-    
+
     const note = document.getElementById("explore-table-note");
     const showAllBtn = document.getElementById("show-all-table-btn");
 
@@ -835,6 +881,11 @@ document.getElementById("chemical-select").addEventListener("change", async func
     await refreshExplore();
 });
 
+document.getElementById("ranking-mode-select").addEventListener("change", async function() {
+    updateUrlFromSelections();
+    await loadRanking();
+});
+
 document.getElementById("show-all-table-btn").addEventListener("click", async function() {
     exploreTableShowAll = true;
     await loadTable();
@@ -847,7 +898,7 @@ document.getElementById("dose-log-scale").addEventListener("change", async funct
 const initialSelections = applySelectionsFromUrl();
 
 Plotly.newPlot("histogram", [], {
-    title: { 
+    title: {
         text: "Select organism, endpoint category and endpoint",
         font: {
             size: 14
@@ -858,7 +909,7 @@ Plotly.newPlot("histogram", [], {
 }, { responsive: true });
 
 Plotly.newPlot("ranking-plot", [], {
-    title: { 
+    title: {
         text: "Select organism, endpoint category and endpoint",
         font: {
             size: 14
@@ -872,7 +923,7 @@ document.getElementById("dose-response-container").innerHTML =
     '<div id="dose-response-empty" class="chart-box" style="min-height: 420px;"></div>';
 
 Plotly.newPlot("dose-response-empty", [], {
-    title: { 
+    title: {
         text: "Select organism, endpoint category, endpoint and chemical",
         font: {
             size: 14
