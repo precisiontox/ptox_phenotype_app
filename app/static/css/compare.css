@@ -1,0 +1,38 @@
+.compare-tabs {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-left: 0.7rem;
+    margin-top: 0.75rem;
+    /* border-bottom: 1px solid #dbe5ef; */
+}
+
+.compare-tab {
+    border: 1px solid #dbe5ef;
+    border-bottom: none;
+    background: #f6f9fc;
+    color: #004880;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 0.55rem 0.85rem;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+}
+
+.compare-tab.active {
+    background: #004880;
+    color: white;
+    border-color: #004880;
+}
+
+.compare-tab-panel {
+    padding-top: 0.9rem;
+}
+
+.metric-control {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+}
