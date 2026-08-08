@@ -1059,364 +1059,63 @@ def compare_heatmap():
             "rr_group": rr_group,
         })
 
-    if metric == "zscore":
-        metric_expr = """
-            CASE
-                WHEN cs.control_mean IS NOT NULL
-                 AND cs.control_sd IS NOT NULL
-                 AND cs.control_sd <> 0
-                    THEN (ts.treatment_mean - cs.control_mean) / cs.control_sd
-                ELSE NULL
-            END
-        """
-    elif metric == "response_score":
-        metric_expr = """
-            CASE
-                WHEN cs.control_mean IS NOT NULL
-                 AND cs.control_sd IS NOT NULL
-                 AND cs.control_sd <> 0
-                    THEN (ts.treatment_mean - cs.control_mean) / cs.control_sd
-                ELSE NULL
-            END
-        """
-    else:
+    metric_type_map = {
+        "difference": "difference",
+        "zscore": "z-score",
+        "response_score": "dose-response evidence",
+    }
+    if metric not in metric_type_map:
         metric = "difference"
-        metric_expr = """
-            CASE
-                WHEN cs.control_mean IS NOT NULL
-                    THEN ts.treatment_mean - cs.control_mean
-                ELSE ts.treatment_mean
-            END
-        """
+    metric_type = metric_type_map[metric]
 
-    sql = f"""
-        WITH numeric_records AS (
-            SELECT
-                c.ptx_code,
-                c.full_ptx_code,
-                c.name AS chemical_name,
-                pe.phenotype_experiment_id,
-                pc.phenotype_condition_id,
-                pc.is_control,
-                pc.sample_type,
-                pef.phenotype_effect_id,
-                pef.type AS effect_type,
-                pef.display_name AS endpoint_label,
-                pef.unit AS endpoint_unit,
-                CAST(pr.effect_value AS DOUBLE PRECISION) AS value_num
-            FROM phenotype_record pr
-            JOIN phenotype_condition pc
-              ON pr.phenotype_condition_id = pc.phenotype_condition_id
-            JOIN phenotype_experiment pe
-              ON pc.phenotype_experiment_id = pe.phenotype_experiment_id
-            JOIN biosystem b
-              ON pe.biosystem_id = b.biosystem_id
-            JOIN phenotype_effect pef
-              ON pr.phenotype_effect_id = pef.phenotype_effect_id
-            LEFT JOIN chemical c
-              ON pc.ptx_code = c.ptx_code
-            WHERE
-                b.organism_id = :organism_id
-                AND (:effect_type IS NULL OR pef.type = :effect_type)
-                AND (:endpoint_name IS NULL OR pef.name = :endpoint_name)
-                AND (
-                    pc.sample_type IS NULL
-                    OR pc.sample_type <> 'no_cells'
-                )
-                AND pr.effect_value IS NOT NULL
-                AND pr.effect_value ~ '^[+-]?([0-9]*[.])?[0-9]+$'
-        ),
-        condition_means AS (
-            SELECT
-                ptx_code,
-                full_ptx_code,
-                chemical_name,
-                phenotype_experiment_id,
-                phenotype_condition_id,
-                is_control,
-                sample_type,
-                phenotype_effect_id,
-                effect_type,
-                endpoint_label,
-                endpoint_unit,
-                AVG(value_num) AS condition_mean
-            FROM numeric_records
-            GROUP BY
-                ptx_code,
-                full_ptx_code,
-                chemical_name,
-                phenotype_experiment_id,
-                phenotype_condition_id,
-                is_control,
-                sample_type,
-                phenotype_effect_id,
-                effect_type,
-                endpoint_label,
-                endpoint_unit
-        ),
-        control_stats AS (
-            SELECT
-                phenotype_experiment_id,
-                phenotype_effect_id,
-                AVG(condition_mean) AS control_mean,
-                STDDEV_SAMP(condition_mean) AS control_sd
-            FROM condition_means
-            WHERE is_control = TRUE
-              AND (
-                  sample_type IS NULL
-                  OR sample_type NOT ILIKE '%agonist%'
-              )
-            GROUP BY phenotype_experiment_id, phenotype_effect_id
-        ),
-        treatment_stats AS (
-            SELECT
-                ptx_code,
-                full_ptx_code,
-                chemical_name,
-                phenotype_experiment_id,
-                phenotype_effect_id,
-                effect_type,
-                endpoint_label,
-                endpoint_unit,
-                AVG(condition_mean) AS treatment_mean
-            FROM condition_means
-            WHERE is_control = FALSE
-              AND ptx_code IS NOT NULL
-            GROUP BY
-                ptx_code,
-                full_ptx_code,
-                chemical_name,
-                phenotype_experiment_id,
-                phenotype_effect_id,
-                effect_type,
-                endpoint_label,
-                endpoint_unit
-        ),
-        experiment_level_values AS (
-            SELECT
-                ts.ptx_code,
-                ts.full_ptx_code,
-                ts.chemical_name,
-                ts.phenotype_effect_id,
-                ts.effect_type,
-                ts.endpoint_label,
-                ts.endpoint_unit,
-                {metric_expr} AS plot_value,
-                CASE WHEN cs.control_mean IS NOT NULL THEN TRUE ELSE FALSE END AS has_control
-            FROM treatment_stats ts
-            LEFT JOIN control_stats cs
-              ON ts.phenotype_experiment_id = cs.phenotype_experiment_id
-             AND ts.phenotype_effect_id = cs.phenotype_effect_id
-        )
+    rows = fetch_all("""
         SELECT
-            CONCAT('[', ev.full_ptx_code, '] ', ev.chemical_name) AS chemical_label,
-            CONCAT('[', ev.effect_type, '] ', ev.endpoint_label) AS endpoint_label,
-            AVG(ev.plot_value) AS mean_value,
-            COUNT(*) AS n_experiments,
-            COUNT(*) FILTER (WHERE ev.has_control) AS n_with_control,
-            COUNT(*) FILTER (WHERE NOT ev.has_control) AS n_without_control
-        FROM experiment_level_values ev
-        WHERE ev.plot_value IS NOT NULL
+            CONCAT('[', c.full_ptx_code, '] ', c.name) AS chemical_label,
+            CONCAT(
+                '[',
+                pef.type,
+                '] ',
+                pef.display_name,
+                CASE
+                    WHEN m.exposure_duration IS NOT NULL
+                        THEN CONCAT(' (', m.exposure_duration::TEXT, 'h)')
+                    ELSE ''
+                END
+            ) AS endpoint_label,
+            AVG(m.metric_value) AS mean_value,
+            SUM(m.n_experiments) AS n_experiments,
+            SUM(m.n_with_control) AS n_with_control,
+            SUM(m.n_without_control) AS n_without_control
+        FROM mv_compare_heatmap_metrics m
+        JOIN chemical c
+          ON m.ptx_code = c.ptx_code
+        JOIN phenotype_effect pef
+          ON m.phenotype_effect_id = pef.phenotype_effect_id
+        JOIN biosystem b
+          ON pef.biosystem_id = b.biosystem_id
+        WHERE
+            b.organism_id = :organism_id
+            AND m.metric_type = :metric_type
+            AND (:effect_type IS NULL OR pef.type = :effect_type)
+            AND (:endpoint_name IS NULL OR pef.name = :endpoint_name)
         GROUP BY
-            ev.full_ptx_code,
-            ev.chemical_name,
-            ev.effect_type,
-            ev.endpoint_label
+            c.full_ptx_code,
+            c.name,
+            pef.type,
+            pef.display_name,
+            m.exposure_duration
         ORDER BY
-            ev.full_ptx_code,
-            ev.chemical_name,
-            ev.effect_type,
-            ev.endpoint_label
-    """
-
-    rows = fetch_all(sql, {
+            c.full_ptx_code,
+            c.name,
+            pef.type,
+            pef.display_name,
+            m.exposure_duration NULLS FIRST
+    """, {
         "organism_id": organism_id,
+        "metric_type": metric_type,
         "effect_type": effect_type or None,
         "endpoint_name": endpoint_name or None,
     })
-
-    if metric == "response_score":
-        response_rows = fetch_all("""
-            WITH numeric_records AS (
-                SELECT
-                    c.ptx_code,
-                    c.full_ptx_code,
-                    c.name AS chemical_name,
-                    pe.phenotype_experiment_id,
-                    pc.phenotype_condition_id,
-                    pc.is_control,
-                    pc.sample_type,
-                    pc.exposure_concentration,
-                    pef.phenotype_effect_id,
-                    pef.type AS effect_type,
-                    pef.display_name AS endpoint_label,
-                    CAST(pr.effect_value AS DOUBLE PRECISION) AS value_num
-                FROM phenotype_record pr
-                JOIN phenotype_condition pc
-                  ON pr.phenotype_condition_id = pc.phenotype_condition_id
-                JOIN phenotype_experiment pe
-                  ON pc.phenotype_experiment_id = pe.phenotype_experiment_id
-                JOIN biosystem b
-                  ON pe.biosystem_id = b.biosystem_id
-                JOIN phenotype_effect pef
-                  ON pr.phenotype_effect_id = pef.phenotype_effect_id
-                LEFT JOIN chemical c
-                  ON pc.ptx_code = c.ptx_code
-                WHERE
-                    b.organism_id = :organism_id
-                    AND (:effect_type IS NULL OR pef.type = :effect_type)
-                    AND (:endpoint_name IS NULL OR pef.name = :endpoint_name)
-                    AND (
-                        pc.sample_type IS NULL
-                        OR pc.sample_type <> 'no_cells'
-                    )
-                    AND pr.effect_value IS NOT NULL
-                    AND pr.effect_value ~ '^[+-]?([0-9]*[.])?[0-9]+$'
-            ),
-            condition_means AS (
-                SELECT
-                    ptx_code,
-                    full_ptx_code,
-                    chemical_name,
-                    phenotype_experiment_id,
-                    phenotype_condition_id,
-                    is_control,
-                    sample_type,
-                    exposure_concentration,
-                    phenotype_effect_id,
-                    effect_type,
-                    endpoint_label,
-                    AVG(value_num) AS condition_mean
-                FROM numeric_records
-                GROUP BY
-                    ptx_code,
-                    full_ptx_code,
-                    chemical_name,
-                    phenotype_experiment_id,
-                    phenotype_condition_id,
-                    is_control,
-                    sample_type,
-                    exposure_concentration,
-                    phenotype_effect_id,
-                    effect_type,
-                    endpoint_label
-            ),
-            control_stats AS (
-                SELECT
-                    phenotype_experiment_id,
-                    phenotype_effect_id,
-                    AVG(condition_mean) AS control_mean,
-                    STDDEV_SAMP(condition_mean) AS control_sd
-                FROM condition_means
-                WHERE is_control = TRUE
-                  AND (
-                      sample_type IS NULL
-                      OR sample_type NOT ILIKE '%agonist%'
-                  )
-                GROUP BY phenotype_experiment_id, phenotype_effect_id
-            )
-            SELECT
-                CONCAT('[', cm.full_ptx_code, '] ', cm.chemical_name) AS chemical_label,
-                CONCAT('[', cm.effect_type, '] ', cm.endpoint_label) AS endpoint_label,
-                cm.phenotype_experiment_id,
-                cm.exposure_concentration,
-                CASE
-                    WHEN cs.control_mean IS NOT NULL
-                     AND cs.control_sd IS NOT NULL
-                     AND cs.control_sd <> 0
-                        THEN (cm.condition_mean - cs.control_mean) / cs.control_sd
-                    WHEN cs.control_mean IS NOT NULL
-                        THEN cm.condition_mean - cs.control_mean
-                    ELSE cm.condition_mean
-                END AS response_value,
-                CASE WHEN cs.control_mean IS NOT NULL THEN TRUE ELSE FALSE END AS has_control
-            FROM condition_means cm
-            LEFT JOIN control_stats cs
-              ON cm.phenotype_experiment_id = cs.phenotype_experiment_id
-             AND cm.phenotype_effect_id = cs.phenotype_effect_id
-            WHERE cm.is_control = FALSE
-              AND cm.ptx_code IS NOT NULL
-              AND cs.control_mean IS NOT NULL
-        """, {
-            "organism_id": organism_id,
-            "effect_type": effect_type or None,
-            "endpoint_name": endpoint_name or None,
-        })
-
-        import math
-
-        def correlation(xs, ys):
-            if len(xs) < 2 or len(set(xs)) < 2 or len(set(ys)) < 2:
-                return None
-            x_mean = sum(xs) / len(xs)
-            y_mean = sum(ys) / len(ys)
-            numerator = sum((x - x_mean) * (y - y_mean) for x, y in zip(xs, ys))
-            x_var = sum((x - x_mean) ** 2 for x in xs)
-            y_var = sum((y - y_mean) ** 2 for y in ys)
-            if x_var == 0 or y_var == 0:
-                return None
-            return numerator / math.sqrt(x_var * y_var)
-
-        grouped = {}
-        for row in response_rows:
-            value = row["response_value"]
-            if value is None:
-                continue
-            grouped.setdefault((row["chemical_label"], row["endpoint_label"]), []).append(row)
-
-        rows = []
-        for (chemical_label, endpoint_label), group in grouped.items():
-            scored = []
-            for row in group:
-                value = float(row["response_value"])
-                concentration = row["exposure_concentration"]
-                log_concentration = None
-                try:
-                    concentration_value = float(concentration) if concentration is not None else None
-                except (TypeError, ValueError):
-                    concentration_value = None
-                if concentration_value is not None and concentration_value > 0:
-                    log_concentration = math.log10(concentration_value)
-                scored.append({
-                    "value": value,
-                    "abs_value": abs(value),
-                    "log_concentration": log_concentration,
-                    "experiment_id": row["phenotype_experiment_id"],
-                    "has_control": bool(row["has_control"]),
-                })
-
-            strongest = max(scored, key=lambda item: item["abs_value"])
-            concentration_points = [
-                item for item in scored
-                if item["log_concentration"] is not None
-            ]
-            if len({item["log_concentration"] for item in concentration_points}) >= 2:
-                corr = correlation(
-                    [item["log_concentration"] for item in concentration_points],
-                    [item["abs_value"] for item in concentration_points],
-                )
-                trend_factor = 0.5 + 0.5 * max(0, corr or 0)
-            else:
-                trend_factor = 0.75
-
-            log_values = [item["log_concentration"] for item in concentration_points]
-            strongest_log = strongest["log_concentration"]
-            if strongest_log is not None and len(set(log_values)) >= 2:
-                span = max(log_values) - min(log_values)
-                concentration_rank = (strongest_log - min(log_values)) / span if span else 0
-                potency_factor = 1 - 0.5 * concentration_rank
-            else:
-                potency_factor = 0.75
-
-            direction = 1 if strongest["value"] >= 0 else -1
-            rows.append({
-                "chemical_label": chemical_label,
-                "endpoint_label": endpoint_label,
-                "mean_value": direction * strongest["abs_value"] * trend_factor * potency_factor,
-                "n_experiments": len({item["experiment_id"] for item in scored}),
-                "n_with_control": len({item["experiment_id"] for item in scored if item["has_control"]}),
-                "n_without_control": len({item["experiment_id"] for item in scored if not item["has_control"]}),
-            })
 
     chemical_rows = fetch_all("""
         SELECT DISTINCT
