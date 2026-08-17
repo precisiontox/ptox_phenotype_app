@@ -112,6 +112,50 @@ def test_explore_options_selectors(page):
     expect(chemical_select).to_be_enabled()
     chemical_select.select_option(index=1)
 
+    # Check info cards change
+    expect(page.locator("#organism-info .info-row")).to_have_count(4)
+    expect(page.locator("#category-info .info-row")).to_have_count(3)
+    expect(page.locator("#endpoint-info .info-row")).to_have_count(6)
+
+
+def test_compare_endpoint_chip_selection(page):
+    page.goto(f"{BASE_URL}/compare/", wait_until="domcontentloaded")
+
+    endpoint_select = page.locator("#compare-endpoint-select")
+    selection_box = page.locator("#compare-endpoint-selection")
+    chips = page.locator(".endpoint-chip")
+
+    expect(selection_box).to_be_hidden()
+
+    page.locator("#compare-organism-select").select_option(index=1)
+    expect(endpoint_select).to_be_enabled()
+
+    options = endpoint_select.locator("option")
+    n_endpoints = options.count() - 1
+    assert n_endpoints >= 2
+
+    # Plain clicks accumulate: no Ctrl/Cmd needed to build a multi-endpoint selection
+    options.nth(1).click()
+    expect(chips).to_have_count(1)
+    options.nth(2).click()
+    expect(chips).to_have_count(2)
+    expect(page.locator("#compare-endpoint-selection-count")).to_have_text("2 endpoints selected")
+
+    # Clicking a selected endpoint again removes it
+    options.nth(2).click()
+    expect(chips).to_have_count(1)
+
+    # The chip's X button deselects it
+    options.nth(2).click()
+    expect(chips).to_have_count(2)
+    chips.first.locator(".endpoint-chip-remove").click()
+    expect(chips).to_have_count(1)
+
+    # "Clear all" empties the selection and hides the box
+    page.locator("#compare-clear-endpoints-btn").click()
+    expect(chips).to_have_count(0)
+    expect(selection_box).to_be_hidden()
+
 
 def test_compare_full_funcionality(page):
     # Go to "Compare" page
@@ -139,6 +183,16 @@ def test_compare_full_funcionality(page):
     # Check status change, select first option
     expect(endpoint_select).to_be_enabled()
     endpoint_select.select_option(index=1)
+
+    # Endpoints are a multi-select: selections only take effect once applied
+    apply_endpoints_btn = page.get_by_role("button", name="Apply endpoints")
+    expect(apply_endpoints_btn).to_be_enabled()
+    apply_endpoints_btn.click()
+
+    # Check info cards change
+    expect(page.locator("#organism-info .info-row")).to_have_count(4)
+    expect(page.locator("#category-info .info-row")).to_have_count(3)
+    expect(page.locator("#endpoint-info .info-row")).to_have_count(6)
 
     # Check heatmap is rendered
     heatmap = page.locator("#compare-heatmap")

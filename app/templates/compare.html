@@ -35,12 +35,23 @@
                 </select>
             </label>
 
-            <label>
-                Endpoint
-                <select id="compare-endpoint-select" disabled>
+            <div class="filter-group">
+                <label for="compare-endpoint-select">Endpoints</label>
+                <select id="compare-endpoint-select" class="endpoint-picker" multiple size="8" disabled>
                     <option value="">All endpoints</option>
                 </select>
-            </label>
+                <p class="endpoint-picker-hint">Click an endpoint to add or remove it.</p>
+
+                <div id="compare-endpoint-selection" class="endpoint-selection" hidden>
+                    <div class="endpoint-selection-header">
+                        <span id="compare-endpoint-selection-count"></span>
+                        <button id="compare-clear-endpoints-btn" type="button" class="endpoint-clear-btn">Clear all</button>
+                    </div>
+                    <ul id="compare-endpoint-chips" class="endpoint-chips"></ul>
+                </div>
+
+                <button id="compare-apply-endpoints-btn" type="button" hidden disabled>Apply endpoints</button>
+            </div>
         </div>
     </aside>
 

@@ -36,3 +36,111 @@
     flex-wrap: wrap;
     margin-bottom: 0.75rem;
 }
+
+
+#compare-apply-endpoints-btn {
+    margin-top: 0.45rem;
+    width: 100%;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.95rem;
+    gap: 0.25rem;
+}
+
+.endpoint-picker option {
+    padding: 0.25rem 0.35rem;
+    cursor: pointer;
+}
+
+.endpoint-picker-hint {
+    margin: 0.1rem 0 0;
+    font-size: 0.78rem;
+    color: #5b7185;
+}
+
+.endpoint-selection {
+    margin-top: 0.45rem;
+    padding: 0.5rem;
+    border: 1px solid #dbe5ef;
+    border-radius: 8px;
+    background: #f6f9fc;
+}
+
+.endpoint-selection-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+}
+
+#compare-endpoint-selection-count {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #004880;
+}
+
+.endpoint-clear-btn {
+    flex-shrink: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    color: #004880;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.endpoint-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    max-height: 8.5rem;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+}
+
+.endpoint-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    max-width: 100%;
+    padding: 0.2rem 0.25rem 0.2rem 0.6rem;
+    border-radius: 999px;
+    background: #004880;
+    color: white;
+    font-size: 0.8rem;
+}
+
+.endpoint-chip-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.endpoint-chip-remove {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.05rem;
+    height: 1.05rem;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+    font-size: 0.9rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.endpoint-chip-remove:hover {
+    background: rgba(255, 255, 255, 0.5);
+}

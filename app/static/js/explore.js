@@ -101,6 +101,10 @@ async function loadOptions() {
         return;
     }
 
+    categorySelect.disabled = true;
+    endpointSelect.disabled = true;
+    chemicalSelect.disabled = true;
+
     const params = new URLSearchParams({ organism_id: organismId });
     if (currentCategory) params.append("effect_type", currentCategory);
     if (currentEndpoint) params.append("endpoint_name", currentEndpoint);

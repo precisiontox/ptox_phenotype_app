@@ -59,6 +59,24 @@ def load_chemical_groups():
     return groups
 
 
+def get_endpoint_names_arg():
+    return [name for name in request.args.getlist("endpoint_name") if name]
+
+
+def endpoint_name_filter(endpoint_names):
+    if not endpoint_names:
+        return "", {}
+
+    params = {}
+    placeholders = []
+    for idx, endpoint_name in enumerate(endpoint_names):
+        key = f"endpoint_name_{idx}"
+        params[key] = endpoint_name
+        placeholders.append(f":{key}")
+
+    return f"AND pef.name IN ({', '.join(placeholders)})", params
+
+
 @api_bp.route("/health")
 def health():
     row = fetch_one("SELECT 1 AS ok")
@@ -1039,7 +1057,7 @@ def compare_rr_groups():
 def compare_heatmap():
     organism_id = request.args.get("organism_id", type=int)
     effect_type = request.args.get("effect_type", type=str)
-    endpoint_name = request.args.get("endpoint_name", type=str)
+    endpoint_names = get_endpoint_names_arg()
     metric = request.args.get("metric", default="difference", type=str)
     clustering = request.args.get("clustering", default="hierarchical", type=str)
     toxicity_category = request.args.get("toxicity_category", type=str)
@@ -1067,8 +1085,9 @@ def compare_heatmap():
     if metric not in metric_type_map:
         metric = "difference"
     metric_type = metric_type_map[metric]
+    endpoint_filter_sql, endpoint_params = endpoint_name_filter(endpoint_names)
 
-    rows = fetch_all("""
+    rows = fetch_all(f"""
         SELECT
             CONCAT('[', c.full_ptx_code, '] ', c.name) AS chemical_label,
             CONCAT(
@@ -1097,7 +1116,7 @@ def compare_heatmap():
             b.organism_id = :organism_id
             AND m.metric_type = :metric_type
             AND (:effect_type IS NULL OR pef.type = :effect_type)
-            AND (:endpoint_name IS NULL OR pef.name = :endpoint_name)
+            {endpoint_filter_sql}
         GROUP BY
             c.full_ptx_code,
             c.name,
@@ -1114,7 +1133,7 @@ def compare_heatmap():
         "organism_id": organism_id,
         "metric_type": metric_type,
         "effect_type": effect_type or None,
-        "endpoint_name": endpoint_name or None,
+        **endpoint_params,
     })
 
     chemical_rows = fetch_all("""
@@ -1376,13 +1395,15 @@ def compare_heatmap():
 def compare_table():
     organism_id = request.args.get("organism_id", type=int)
     effect_type = request.args.get("effect_type", type=str)
-    endpoint_name = request.args.get("endpoint_name", type=str)
+    endpoint_names = get_endpoint_names_arg()
     show_all = request.args.get("show_all", "0") == "1"
 
     if not organism_id:
         return jsonify({"rows": [], "is_truncated": False, "show_all": show_all})
 
-    sql = """
+    endpoint_filter_sql, endpoint_params = endpoint_name_filter(endpoint_names)
+
+    sql = f"""
         SELECT
             pr.phenotype_record_id,
             pe.partner_id,
@@ -1423,7 +1444,7 @@ def compare_table():
         WHERE
             b.organism_id = :organism_id
             AND (:effect_type IS NULL OR pef.type = :effect_type)
-            AND (:endpoint_name IS NULL OR pef.name = :endpoint_name)
+            {endpoint_filter_sql}
             AND (
                 pc.sample_type IS NULL
                 OR pc.sample_type <> 'no_cells'
@@ -1446,7 +1467,7 @@ def compare_table():
     rows = fetch_all(sql, {
         "organism_id": organism_id,
         "effect_type": effect_type or None,
-        "endpoint_name": endpoint_name or None,
+        **endpoint_params,
     })
 
     return jsonify({

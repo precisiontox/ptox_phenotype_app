@@ -1,6 +1,90 @@
 let compareTable = null;
 let compareTableShowAll = false;
 let activeCompareTab = "heatmap";
+let appliedEndpointNames = [];
+
+function getSelectedEndpointNames() {
+    const endpointSelect = document.getElementById("compare-endpoint-select");
+    return [...endpointSelect.selectedOptions]
+        .map(option => option.value)
+        .filter(Boolean);
+}
+
+function clearSelectedEndpoints() {
+    [...document.getElementById("compare-endpoint-select").options].forEach(option => {
+        option.selected = false;
+    });
+}
+
+function setSelectedEndpointNames(endpointNames) {
+    const selectedNames = new Set(endpointNames.filter(Boolean));
+    [...document.getElementById("compare-endpoint-select").options].forEach(option => {
+        option.selected = selectedNames.has(option.value);
+    });
+}
+
+function appendEndpointParams(params, endpointNames) {
+    endpointNames.forEach(endpointName => params.append("endpoint_name", endpointName));
+}
+
+function endpointSelectionsMatch(a, b) {
+    if (a.length !== b.length) return false;
+    const bSet = new Set(b);
+    return a.every(endpointName => bSet.has(endpointName));
+}
+
+function updateEndpointApplyButton() {
+    const button = document.getElementById("compare-apply-endpoints-btn");
+    const selectedEndpointNames = getSelectedEndpointNames();
+    const hasPendingChange = !endpointSelectionsMatch(selectedEndpointNames, appliedEndpointNames);
+    button.hidden = !hasPendingChange;
+    button.disabled = !hasPendingChange;
+}
+
+function renderEndpointChips() {
+    const selectionBox = document.getElementById("compare-endpoint-selection");
+    const chipList = document.getElementById("compare-endpoint-chips");
+    const countLabel = document.getElementById("compare-endpoint-selection-count");
+    const endpointSelect = document.getElementById("compare-endpoint-select");
+
+    const selectedOptions = [...endpointSelect.selectedOptions].filter(option => option.value);
+
+    if (!selectedOptions.length) {
+        selectionBox.hidden = true;
+        chipList.replaceChildren();
+        return;
+    }
+
+    selectionBox.hidden = false;
+    countLabel.textContent = `${selectedOptions.length} endpoint${selectedOptions.length === 1 ? "" : "s"} selected`;
+
+    chipList.replaceChildren(...selectedOptions.map(option => {
+        const label = option.textContent.trim();
+
+        const chip = document.createElement("li");
+        chip.className = "endpoint-chip";
+
+        const chipLabel = document.createElement("span");
+        chipLabel.className = "endpoint-chip-label";
+        chipLabel.textContent = label;
+        chipLabel.title = label;
+
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.className = "endpoint-chip-remove";
+        removeButton.dataset.endpointName = option.value;
+        removeButton.setAttribute("aria-label", `Remove ${label}`);
+        removeButton.textContent = "×";
+
+        chip.append(chipLabel, removeButton);
+        return chip;
+    }));
+}
+
+function updateEndpointSelectionUi() {
+    updateEndpointApplyButton();
+    renderEndpointChips();
+}
 
 function setCompareTab(tabName) {
     activeCompareTab = tabName;
@@ -30,7 +114,8 @@ function compareSelections() {
     return {
         organism_id: document.getElementById("compare-organism-select").value,
         effect_type: document.getElementById("compare-category-select").value,
-        endpoint_name: document.getElementById("compare-endpoint-select").value,
+        endpoint_name: appliedEndpointNames[0] || "",
+        endpoint_names: appliedEndpointNames,
         metric: document.getElementById("compare-metric-select").value,
         clustering: document.getElementById("compare-clustering-select").value,
         toxicity_category: document.getElementById("compare-toxicity-category-select").value,
@@ -49,11 +134,11 @@ function updateCompareMetricNote() {
 }
 
 function updateCompareUrl() {
-    const { organism_id, effect_type, endpoint_name, metric, clustering, toxicity_category, rr_group } = compareSelections();
+    const { organism_id, effect_type, endpoint_names, metric, clustering, toxicity_category, rr_group } = compareSelections();
     const params = new URLSearchParams();
     if (organism_id) params.set("organism_id", organism_id);
     if (effect_type) params.set("effect_type", effect_type);
-    if (endpoint_name) params.set("endpoint_name", endpoint_name);
+    appendEndpointParams(params, endpoint_names);
     if (metric) params.set("metric", metric);
     if (clustering) params.set("clustering", clustering);
     if (toxicity_category) params.set("toxicity_category", toxicity_category);
@@ -65,7 +150,7 @@ function applyCompareSelectionsFromUrl() {
     const params = new URLSearchParams(window.location.search);
     const organism_id = params.get("organism_id") || "";
     const effect_type = params.get("effect_type") || "";
-    const endpoint_name = params.get("endpoint_name") || "";
+    const endpoint_names = params.getAll("endpoint_name").filter(Boolean);
     const metric = params.get("metric") || "difference";
     const clustering = params.get("clustering") || "default";
     const toxicity_category = params.get("toxicity_category") || "";
@@ -75,21 +160,22 @@ function applyCompareSelectionsFromUrl() {
     document.getElementById("compare-metric-select").value = metric;
     document.getElementById("compare-clustering-select").value = clustering;
 
-    return { effect_type, endpoint_name, toxicity_category, rr_group };
+    return { effect_type, endpoint_names, toxicity_category, rr_group };
 }
 
 function getSelections() {
     return {
         organism_id: document.getElementById("compare-organism-select").value,
         effect_type: document.getElementById("compare-category-select").value,
-        endpoint_name: document.getElementById("compare-endpoint-select").value,
+        endpoint_name: appliedEndpointNames[0] || "",
+        endpoint_names: appliedEndpointNames,
     };
 }
 
 async function loadCompareOptions() {
     const organism_id = document.getElementById("compare-organism-select").value;
     const currentCategory = document.getElementById("compare-category-select").value;
-    const currentEndpoint = document.getElementById("compare-endpoint-select").value;
+    const currentEndpoints = getSelectedEndpointNames();
     const categorySelect = document.getElementById("compare-category-select");
     const endpointSelect = document.getElementById("compare-endpoint-select");
 
@@ -98,8 +184,12 @@ async function loadCompareOptions() {
         endpointSelect.innerHTML = '<option value="">All endpoints</option>';
         categorySelect.disabled = true;
         endpointSelect.disabled = true;
+        updateEndpointSelectionUi();
         return;
     }
+
+    categorySelect.disabled = true;
+    endpointSelect.disabled = true;
 
     const params = new URLSearchParams({ organism_id });
     if (currentCategory) params.append("effect_type", currentCategory);
@@ -122,9 +212,8 @@ async function loadCompareOptions() {
         categorySelect.value = currentCategory;
     }
 
-    if ([...endpointSelect.options].some(opt => opt.value === currentEndpoint)) {
-        endpointSelect.value = currentEndpoint;
-    }
+    setSelectedEndpointNames(currentEndpoints);
+    updateEndpointSelectionUi();
 }
 
 async function loadToxicityCategories(selectedCategory = "") {
@@ -178,7 +267,7 @@ async function loadRrGroups(selectedGroup = "") {
 }
 
 async function loadInfoPanels() {
-    const { organism_id, effect_type, endpoint_name } = getSelections();
+    const { organism_id, effect_type, endpoint_name, endpoint_names } = getSelections();
 
     const organismBox = document.getElementById("organism-info");
     const categoryBox = document.getElementById("category-info");
@@ -195,7 +284,7 @@ async function loadInfoPanels() {
 
     const params = new URLSearchParams({ organism_id });
     if (effect_type) params.append("effect_type", effect_type);
-    if (endpoint_name) params.append("endpoint_name", endpoint_name);
+    if (endpoint_names.length === 1) params.append("endpoint_name", endpoint_name);
 
     const response = await fetch(`${window.APP_ROOT}/api/explore/info?${params.toString()}`);
     const data = await response.json();
@@ -221,7 +310,12 @@ async function loadInfoPanels() {
         categoryBox.innerHTML = "Select an endpoint category.";
     }
 
-    if (endpoint_name && data.endpoint) {
+    if (endpoint_names.length > 1) {
+        endpointCard.hidden = false;
+        endpointBox.innerHTML = `
+            <div class="info-row"><span class="info-label">Selected endpoints:</span><strong> ${endpoint_names.length}</strong></div>
+        `;
+    } else if (endpoint_names.length === 1 && data.endpoint) {
         endpointCard.hidden = false;
         endpointBox.innerHTML = `
             <div class="info-row"><span class="info-label">Display name:</span><strong> ${data.endpoint.display_name || ""}</strong></div>
@@ -428,7 +522,7 @@ function renderComparePca(data, displayZ) {
 }
 
 async function loadCompareHeatmap() {
-    const { organism_id, effect_type, endpoint_name, metric, clustering, toxicity_category, rr_group } = compareSelections();
+    const { organism_id, effect_type, endpoint_names, metric, clustering, toxicity_category, rr_group } = compareSelections();
     updateCompareMetricNote();
 
     if (!organism_id) {
@@ -443,7 +537,7 @@ async function loadCompareHeatmap() {
 
     const params = new URLSearchParams({ organism_id, metric, clustering });
     if (effect_type) params.append("effect_type", effect_type);
-    if (endpoint_name) params.append("endpoint_name", endpoint_name);
+    appendEndpointParams(params, endpoint_names);
     if (toxicity_category) params.append("toxicity_category", toxicity_category);
     if (rr_group) params.append("rr_group", rr_group);
 
@@ -580,7 +674,7 @@ async function loadCompareHeatmap() {
 }
 
 async function loadCompareTable() {
-    const { organism_id, effect_type, endpoint_name } = compareSelections();
+    const { organism_id, effect_type, endpoint_names } = compareSelections();
 
     if (!organism_id) {
         if (compareTable) {
@@ -595,7 +689,7 @@ async function loadCompareTable() {
 
     const params = new URLSearchParams({ organism_id });
     if (effect_type) params.append("effect_type", effect_type);
-    if (endpoint_name) params.append("endpoint_name", endpoint_name);
+    appendEndpointParams(params, endpoint_names);
     if (compareTableShowAll) params.append("show_all", "1");
 
     const response = await fetch(`${window.APP_ROOT}/api/compare/table?${params.toString()}`);
@@ -682,7 +776,9 @@ async function refreshCompare() {
 document.getElementById("compare-organism-select").addEventListener("change", async function() {
     compareTableShowAll = false;
     document.getElementById("compare-category-select").value = "";
-    document.getElementById("compare-endpoint-select").value = "";
+    clearSelectedEndpoints();
+    appliedEndpointNames = [];
+    updateEndpointSelectionUi();
     document.getElementById("compare-toxicity-category-select").value = "";
     document.getElementById("compare-rr-group-select").value = "";
     await loadCompareOptions();
@@ -693,13 +789,62 @@ document.getElementById("compare-organism-select").addEventListener("change", as
 
 document.getElementById("compare-category-select").addEventListener("change", async function() {
     compareTableShowAll = false;
-    document.getElementById("compare-endpoint-select").value = "";
+    clearSelectedEndpoints();
+    appliedEndpointNames = [];
+    updateEndpointSelectionUi();
     await loadCompareOptions();
     await refreshCompare();
 });
 
-document.getElementById("compare-endpoint-select").addEventListener("change", async function() {
+document.getElementById("compare-endpoint-select").addEventListener("change", function() {
     compareTableShowAll = false;
+    updateEndpointSelectionUi();
+});
+
+// Plain click toggles an endpoint instead of replacing the whole selection, so
+// building a multi-endpoint selection does not require Ctrl/Cmd+click.
+document.getElementById("compare-endpoint-select").addEventListener("mousedown", function(event) {
+    const option = event.target.closest("option");
+    if (!option || option.disabled) return;
+
+    event.preventDefault();
+
+    if (option.value) {
+        option.selected = !option.selected;
+        // "All endpoints" is a reset, so it never stays selected alongside specific endpoints.
+        [...this.options].forEach(candidate => {
+            if (!candidate.value) candidate.selected = false;
+        });
+    } else {
+        clearSelectedEndpoints();
+    }
+
+    this.focus();
+    this.dispatchEvent(new Event("change", { bubbles: true }));
+});
+
+document.getElementById("compare-endpoint-chips").addEventListener("click", function(event) {
+    const removeButton = event.target.closest(".endpoint-chip-remove");
+    if (!removeButton) return;
+
+    const endpointSelect = document.getElementById("compare-endpoint-select");
+    const option = [...endpointSelect.options].find(candidate => candidate.value === removeButton.dataset.endpointName);
+    if (!option) return;
+
+    option.selected = false;
+    endpointSelect.dispatchEvent(new Event("change", { bubbles: true }));
+});
+
+document.getElementById("compare-clear-endpoints-btn").addEventListener("click", function() {
+    const endpointSelect = document.getElementById("compare-endpoint-select");
+    clearSelectedEndpoints();
+    endpointSelect.dispatchEvent(new Event("change", { bubbles: true }));
+});
+
+document.getElementById("compare-apply-endpoints-btn").addEventListener("click", async function() {
+    compareTableShowAll = false;
+    appliedEndpointNames = getSelectedEndpointNames();
+    updateEndpointSelectionUi();
     await refreshCompare();
 });
 
@@ -753,9 +898,9 @@ Plotly.newPlot("compare-heatmap", [], {
             await loadCompareOptions();
         }
 
-        if (initialCompareSelections.endpoint_name) {
-            document.getElementById("compare-endpoint-select").value = initialCompareSelections.endpoint_name;
-        }
+        setSelectedEndpointNames(initialCompareSelections.endpoint_names);
+        appliedEndpointNames = initialCompareSelections.endpoint_names.slice();
+        updateEndpointSelectionUi();
 
         await refreshCompare();
     }
