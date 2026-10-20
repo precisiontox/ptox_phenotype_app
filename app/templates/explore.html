@@ -124,19 +124,24 @@
                     Dose-response curves
                     <span class="selector-help" tabindex="0" aria-label="Dose-response curves help">?</span>
                     <span class="selector-tooltip" role="tooltip">
-                        Shows endpoint response against exposure concentration for the <strong>selected chemical</strong>, grouped by experiment batch and exposure duration.<br>
-                        Each line corresponds to a different experiment batch (for both exposures and controls).
+                        Shows endpoint response against exposure concentration for the <strong>selected chemical</strong>, grouped by exposure duration.<br>
+                        By default, all batches are pooled into a single curve: conditions at the same concentration are treated as replicates, and the control line is the mean of the controls from those batches.<br>
+                        Enable "Separate curve per batch" to draw one line per experiment batch (for both exposures and controls).
                     </span>
                 </h2>
                 <p class="section-note">
-                    
+
                 </p>
             </div>
-            <div class="toolbar toolbar-align-start">
+            <div class="toolbar toolbar-align-start toolbar-stack">
 
                 <label class="checkbox-control">
                     <input type="checkbox" id="dose-log-scale">
                     Log10 concentration axis
+                </label>
+                <label class="checkbox-control">
+                    <input type="checkbox" id="dose-by-batch">
+                    Separate curve per batch
                 </label>
             </div>
             <div id="dose-response-container" class="dose-grid"></div>

@@ -1,5 +1,7 @@
 import csv
 import json
+import math
+import statistics
 from pathlib import Path
 
 from flask import Blueprint, jsonify, request
@@ -385,6 +387,7 @@ def explore_dose_response():
     effect_type = request.args.get("effect_type", type=str)
     endpoint_name = request.args.get("endpoint_name", type=str)
     ptx_code = request.args.get("ptx_code", type=int)
+    by_batch = request.args.get("by_batch") == "1"
 
     if not organism_id or not effect_type or not endpoint_name or not ptx_code:
         return jsonify({
@@ -394,6 +397,8 @@ def explore_dose_response():
             "endpoint_label": None,
         })
 
+    # One row per condition (mean over its records). Controls are restricted to
+    # the experiment batches in which the selected chemical was tested.
     rows = fetch_all("""
         WITH numeric_records AS (
             SELECT
@@ -457,68 +462,20 @@ def explore_dose_response():
                 endpoint_label,
                 endpoint_unit
         ),
-        control_summary AS (
-            SELECT
-                phenotype_experiment_id,
-                batch_id,
-                AVG(condition_mean) AS control_mean
+        exposed_batches AS (
+            SELECT DISTINCT phenotype_experiment_id, batch_id
             FROM condition_means
-            WHERE is_control = TRUE
-            GROUP BY phenotype_experiment_id, batch_id
-        ),
-        exposure_summary AS (
-            SELECT
-                cm.phenotype_experiment_id,
-                cm.experiment_date,
-                cm.batch_id,
-                cm.exposure_concentration,
-                cm.exposure_concentration_unit,
-                cm.exposure_duration,
-                cm.exposure_duration_unit,
-                cm.endpoint_label,
-                cm.endpoint_unit,
-                AVG(cm.condition_mean) AS mean_value,
-                CASE
-                    WHEN COUNT(*) > 1
-                    THEN STDDEV_SAMP(cm.condition_mean) / SQRT(COUNT(*))
-                    ELSE NULL
-                END AS sem_value,
-                COUNT(*) AS n_conditions
-            FROM condition_means cm
-            WHERE cm.is_control = FALSE
-            GROUP BY
-                cm.phenotype_experiment_id,
-                cm.experiment_date,
-                cm.batch_id,
-                cm.exposure_concentration,
-                cm.exposure_concentration_unit,
-                cm.exposure_duration,
-                cm.exposure_duration_unit,
-                cm.endpoint_label,
-                cm.endpoint_unit
+            WHERE is_control = FALSE
         )
-        SELECT
-            es.phenotype_experiment_id,
-            es.experiment_date,
-            es.batch_id,
-            es.exposure_concentration,
-            es.exposure_concentration_unit,
-            es.exposure_duration,
-            es.exposure_duration_unit,
-            es.endpoint_label,
-            es.endpoint_unit,
-            es.mean_value,
-            es.sem_value,
-            es.n_conditions,
-            cs.control_mean
-        FROM exposure_summary es
-        LEFT JOIN control_summary cs
-          ON es.phenotype_experiment_id = cs.phenotype_experiment_id
-         AND es.batch_id IS NOT DISTINCT FROM cs.batch_id
+        SELECT cm.*
+        FROM condition_means cm
+        JOIN exposed_batches eb
+          ON cm.phenotype_experiment_id = eb.phenotype_experiment_id
+         AND cm.batch_id IS NOT DISTINCT FROM eb.batch_id
         ORDER BY
-            es.batch_id,
-            es.exposure_duration NULLS FIRST,
-            es.exposure_concentration
+            cm.batch_id,
+            cm.exposure_duration NULLS FIRST,
+            cm.exposure_concentration
     """, {
         "organism_id": organism_id,
         "effect_type": effect_type,
@@ -526,12 +483,29 @@ def explore_dose_response():
         "ptx_code": ptx_code,
     })
 
+    def batch_key(r):
+        return (r["phenotype_experiment_id"], r["batch_id"], r["experiment_date"])
+
+    def duration_label_of(r):
+        if r["exposure_duration"] is None:
+            return ""
+        return f'{r["exposure_duration"]} {r["exposure_duration_unit"] or ""}'.strip()
+
+    # Control condition means per batch (controls are not tied to a duration).
+    control_values = {}
+    for r in rows:
+        if r["is_control"]:
+            control_values.setdefault(batch_key(r), []).append(float(r["condition_mean"]))
+
+    # Group exposure condition means into series, then by concentration.
     series_map = {}
     x_units = set()
     y_units = set()
     endpoint_labels = set()
 
     for r in rows:
+        if r["is_control"]:
+            continue
         if r["exposure_concentration_unit"]:
             x_units.add(r["exposure_concentration_unit"])
         if r["endpoint_unit"]:
@@ -539,34 +513,38 @@ def explore_dose_response():
         if r["endpoint_label"]:
             endpoint_labels.add(r["endpoint_label"])
 
-        duration_label = ""
-        if r["exposure_duration"] is not None:
-            duration_label = f'{r["exposure_duration"]} {r["exposure_duration_unit"] or ""}'.strip()
+        duration_label = duration_label_of(r)
+        if by_batch:
+            exp_id, batch_id, experiment_date = batch_key(r)
+        else:
+            exp_id, batch_id, experiment_date = None, None, None
 
-        series_key = (
-            r["phenotype_experiment_id"],
-            r["batch_id"],
-            r["experiment_date"],
-            duration_label,
-        )
-
-        series = series_map.setdefault(series_key, {
+        series = series_map.setdefault((exp_id, batch_id, experiment_date, duration_label), {
             "label": "",
-            "exp_id": r["phenotype_experiment_id"],
-            "batch_id": r["batch_id"],
-            "experiment_date": r["experiment_date"],
+            "exp_id": exp_id,
+            "batch_id": batch_id,
+            "experiment_date": experiment_date,
             "duration_label": duration_label,
-            "x": [],
-            "y": [],
-            "sem": [],
-            "n_conditions": [],
-            "control_mean": None if r["control_mean"] is None else float(r["control_mean"]),
+            "batches": set(),
+            "points": {},
         })
+        series["batches"].add(batch_key(r))
+        series["points"].setdefault(float(r["exposure_concentration"]), []).append(float(r["condition_mean"]))
 
-        series["x"].append(float(r["exposure_concentration"]))
-        series["y"].append(float(r["mean_value"]))
-        series["sem"].append(None if r["sem_value"] is None else float(r["sem_value"]))
-        series["n_conditions"].append(int(r["n_conditions"]))
+    series_list = []
+    for series in series_map.values():
+        xs = sorted(series.pop("points").items())
+        series["x"] = [x for x, _ in xs]
+        series["y"] = [sum(vals) / len(vals) for _, vals in xs]
+        series["sem"] = [
+            statistics.stdev(vals) / math.sqrt(len(vals)) if len(vals) > 1 else None
+            for _, vals in xs
+        ]
+        series["n_conditions"] = [len(vals) for _, vals in xs]
+
+        ctrl = [v for b in series.pop("batches") for v in control_values.get(b, [])]
+        series["control_mean"] = sum(ctrl) / len(ctrl) if ctrl else None
+        series_list.append(series)
 
     x_unit = next(iter(x_units)) if len(x_units) == 1 else None
     y_unit = next(iter(y_units)) if len(y_units) == 1 else None
@@ -574,7 +552,7 @@ def explore_dose_response():
 
     return jsonify({
         "series": sorted(
-            series_map.values(),
+            series_list,
             key=lambda s: (
                 s["duration_label"] or "",
                 s["batch_id"] or "",
