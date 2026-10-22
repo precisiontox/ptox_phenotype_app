@@ -57,6 +57,7 @@ function updateUrlFromSelections() {
     if (ptx_code) params.set("ptx_code", ptx_code);
     if (getRankingMode() !== "mean_response") params.set("ranking_mode", getRankingMode());
     if (document.getElementById("dose-log-scale").checked) params.set("log_x", "1");
+    if (document.getElementById("dose-by-batch").checked) params.set("by_batch", "1");
 
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.replaceState({}, "", newUrl);
@@ -77,6 +78,7 @@ function applySelectionsFromUrl() {
         document.getElementById("ranking-mode-select").value = ranking_mode;
     }
     document.getElementById("dose-log-scale").checked = log_x;
+    document.getElementById("dose-by-batch").checked = params.get("by_batch") === "1";
 
     return { effect_type, endpoint_name, ptx_code };
 }
@@ -360,6 +362,7 @@ async function loadDoseResponse() {
     }
 
     const params = new URLSearchParams({ organism_id, effect_type, endpoint_name, ptx_code });
+    if (document.getElementById("dose-by-batch").checked) params.set("by_batch", "1");
     const response = await fetch(`${window.APP_ROOT}/api/explore/dose_response?${params.toString()}`);
     const data = await response.json();
 
@@ -713,6 +716,12 @@ document.getElementById("show-all-table-btn").addEventListener("click", async fu
 });
 
 document.getElementById("dose-log-scale").addEventListener("change", async function() {
+    updateUrlFromSelections();
+    await loadDoseResponse();
+});
+
+document.getElementById("dose-by-batch").addEventListener("change", async function() {
+    updateUrlFromSelections();
     await loadDoseResponse();
 });
 

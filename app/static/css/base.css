@@ -633,6 +633,11 @@ a.dt-button {
     align-items: flex-start;
 }
 
+.toolbar-stack {
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
 .full-width-table {
     width: 100%;
 }
