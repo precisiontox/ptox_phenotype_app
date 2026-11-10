@@ -2,9 +2,9 @@
 
 {% block content %}
 
-<div class="hero-block">
+<div class="panel hero-block">
     <div>
-        <h1 class="page-title">PrecisionTox phenotype dashboard</h1>
+        <h1 class="page-title">Phenotype Overview</h1>
         <p class="page-subtitle">
             Overview of phenotype data coverage across organisms, endpoints and chemicals.
         </p>
@@ -12,15 +12,15 @@
 
     <div class="quick-links">
         <a class="quick-link-card" href="{{ url_for('experiments.list_experiments') }}">
-            <div class="quick-link-title">Experiments</div>
+            <div class="quick-link-title">Experiment Records</div>
             <div class="quick-link-text">Browse experiment metadata, conditions and batch-level summaries.</div>
         </a>
         <a class="quick-link-card" href="{{ url_for('explore.index') }}">
-            <div class="quick-link-title">Explore Endpoints</div>
+            <div class="quick-link-title">Single-Endpoint View</div>
             <div class="quick-link-text">Inspect endpoint distributions, dose–response curves and raw records.</div>
         </a>
         <a class="quick-link-card" href="{{ url_for('compare.heatmap') }}">
-            <div class="quick-link-title">Compare Endpoints</div>
+            <div class="quick-link-title">Multi-Endpoint View</div>
             <div class="quick-link-text">Compare chemicals across endpoints with clustered heatmaps.</div>
         </a>
         <!-- <a class="quick-link-card" href="/endpoints/">
@@ -30,33 +30,37 @@
     </div>
 </div>
 
-<h2>Data overview</h2>
-<div class="cards cards-home">
-    <div class="card card-accent-blue">
-        <div class="card-label">Exposure Experiments</div>
-        <div class="card-value">{{ "{:,}".format(summary.n_experiments) }}</div>
+<section class="section-card">
+    <div class="section-card-header">
+        <h2>Data overview</h2>
     </div>
-    <div class="card card-accent-blue">
-        <div class="card-label">Exposure Conditions</div>
-        <div class="card-value">{{ "{:,}".format(summary.n_conditions) }}</div>
+    <div class="cards cards-home">
+        <div class="card card-accent-blue">
+            <div class="card-label">Exposure Experiments</div>
+            <div class="card-value">{{ "{:,}".format(summary.n_experiments) }}</div>
+        </div>
+        <div class="card card-accent-blue">
+            <div class="card-label">Exposure Conditions</div>
+            <div class="card-value">{{ "{:,}".format(summary.n_conditions) }}</div>
+        </div>
+        <div class="card card-accent-blue">
+            <div class="card-label">Phenotype records</div>
+            <div class="card-value">{{ "{:,}".format(summary.n_records) }}</div>
+        </div>
+        <div class="card card-accent-amber">
+            <div class="card-label">Phenotypic Endpoints</div>
+            <div class="card-value">{{ "{:,}".format(summary.n_effects) }}</div>
+        </div>
+        <div class="card card-accent-green">
+            <div class="card-label">Organisms covered</div>
+            <div class="card-value">{{ "{:,}".format(summary.n_organisms) }}</div>
+        </div>
+        <div class="card card-accent-green">
+            <div class="card-label">Chemicals covered</div>
+            <div class="card-value">{{ "{:,}".format(summary.n_chemicals) }}</div>
+        </div>
     </div>
-    <div class="card card-accent-blue">
-        <div class="card-label">Phenotype records</div>
-        <div class="card-value">{{ "{:,}".format(summary.n_records) }}</div>
-    </div>
-    <div class="card card-accent-amber">
-        <div class="card-label">Phenotypic Endpoints</div>
-        <div class="card-value">{{ "{:,}".format(summary.n_effects) }}</div>
-    </div>
-    <div class="card card-accent-green">
-        <div class="card-label">Organisms covered</div>
-        <div class="card-value">{{ "{:,}".format(summary.n_organisms) }}</div>
-    </div>
-    <div class="card card-accent-green">
-        <div class="card-label">Chemicals covered</div>
-        <div class="card-value">{{ "{:,}".format(summary.n_chemicals) }}</div>
-    </div>
-</div>
+</section>
 
 <div class="section-card">
     <div class="section-card-header">

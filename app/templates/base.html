@@ -5,31 +5,66 @@
     <title>PrecisionTox Phenotype</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/font-awesome/6.5.2/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     {% block styles %}{% endblock %}
 
 </head>
 <body>
-    <nav class="navbar">
-        <a href="{{ url_for('main.index') }}" class="logo-link">
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="PrecisionTox" class="logo">
+    {# Same navbar as the main PTox/DEx Data Explorer; this app sits under "Phenotype Data". #}
+    {% set dex = dex_base_url %}
+    {% set omics_pages = [
+      (dex ~ '/species-centric', 'Species-Centric View', 'One species across selected chemicals'),
+      (dex ~ '/chemical-centric', 'Chemical-Centric View', 'One chemical across selected species'),
+      (dex ~ '/matrix', 'The Matrix', 'Multi-species and multi-chemical overlap'),
+      (dex ~ '/gene-metabolite', 'Gene/Metabolite View', 'Response profile by gene or metabolite'),
+    ] %}
+    {% set phenotype_pages = [
+      ('main.index', '/', 'Overview', 'Summary of phenotype data and experiments'),
+      ('explore.index', '/explore', 'Single-Endpoint View', 'Distribution, ranking and dose-response for one endpoint'),
+      ('compare.heatmap', '/compare', 'Multi-Endpoint View', 'Compare endpoints across chemicals and species'),
+      ('experiments.list_experiments', '/experiments', 'Experiment Records', 'Experiment metadata and individual records'),
+    ] %}
+    <header class="top-nav">
+        <a class="brand" href="{{ dex }}/">
+            <img src="{{ url_for('static', filename='images/ptox_logo_white.png') }}" alt="PTox logo">
+            <span><sup>PTox</sup>/<sub>DEx</sub> PrecisionTox Data Explorer</span>
         </a>
-
-        <div class="nav-links">
-            <a href="{{ url_for('main.index') }}" class="{% if request.path == '/' %}active{% endif %}">Home</a>
-            <a href="{{ url_for('explore.index') }}" class="{% if request.path.startswith('/explore') %}active{% endif %}">Explore</a>
-            <a href="{{ url_for('compare.heatmap') }}" class="{% if request.path.startswith('/compare') %}active{% endif %}">Compare</a>
-            <a href="{{ url_for('experiments.list_experiments') }}" class="{% if request.path.startswith('/experiments') %}active{% endif %}">Experiments</a>
-            <!-- <a href="/endpoints/" class="{% if request.path.startswith('/endpoints') %}active{% endif %}">Endpoints</a> -->
-        </div>
-
-        <div class="nav-links-secondary">
-            <a href="{{ url_for('api.health') }}" class="{% if request.path.startswith('/api') %}active{% endif %}">API</a>
-            <a href="https://dex.precisiontox.org/downloads/phenotype/">Download</a>
-        </div>
-    </nav>
-    <!-- <hr> -->
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="top-nav-links" aria-label="Toggle navigation">
+            <i class="fa-solid fa-bars" aria-hidden="true"></i>
+        </button>
+        <nav class="nav-links" id="top-nav-links">
+            <div class="nav-dropdown">
+                <button class="nav-dropdown-button" type="button" aria-haspopup="true" aria-expanded="false">
+                    <i class="fa-solid fa-dna nav-icon" aria-hidden="true"></i>Omics Data
+                    <span aria-hidden="true"></span>
+                </button>
+                <div class="nav-dropdown-menu" role="menu">
+                    {% for href, label, description in omics_pages %}
+                    <a href="{{ href }}" role="menuitem"><span class="nav-menu-title">{{ label }}</span><span class="nav-menu-desc">{{ description }}</span></a>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="nav-dropdown">
+                <button class="nav-dropdown-button is-current" type="button" aria-haspopup="true" aria-expanded="false">
+                    <i class="fa-solid fa-microscope nav-icon" aria-hidden="true"></i>Phenotype Data
+                    <span aria-hidden="true"></span>
+                </button>
+                <div class="nav-dropdown-menu" role="menu">
+                    {% for endpoint, prefix, label, description in phenotype_pages %}
+                    {% set is_current = request.path == '/' if prefix == '/' else request.path.startswith(prefix) %}
+                    <a href="{{ url_for(endpoint) }}" role="menuitem"{% if is_current %} aria-current="page"{% endif %}><span class="nav-menu-title">{{ label }}</span><span class="nav-menu-desc">{{ description }}</span></a>
+                    {% endfor %}
+                </div>
+            </div>
+            <a href="{{ dex }}/chem"><i class="fa-solid fa-flask nav-icon" aria-hidden="true"></i>Chemical Library</a>
+            <a class="nav-links-api" href="{{ dex }}/api-docs"><i class="fa-solid fa-code nav-icon" aria-hidden="true"></i>API</a>
+            <a href="{{ dex }}/downloads/"><i class="fa-solid fa-download nav-icon" aria-hidden="true"></i>Downloads</a>
+        </nav>
+    </header>
+    <main class="page-shell">
     {% block content %}{% endblock %}
+    </main>
     <script src="{{ url_for('static', filename='js/base.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>

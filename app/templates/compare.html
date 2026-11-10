@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="page-title">Compare Endpoints</h1>
-<div>
-    <p>
+<section class="panel hero">
+    <h1 class="page-title">Multi-Endpoint View</h1>
+    <p class="page-subtitle">
         Visualize and compare endpoint data for all chemicals at once.
     </p>
-</div>
+</section>
 
 <div class="analysis-layout">
     <aside class="sidebar-panel">
@@ -85,10 +85,6 @@
             <button id="compare-tab-records" class="compare-tab" type="button" role="tab" aria-selected="false" aria-controls="compare-panel-records" data-tab="records">Database records</button>
         </div>
         <div class="section-card compare-results-card">
-            <div class="section-card-header">
-                <!-- <h2>Results</h2> -->
-            </div>
-
             <div id="compare-panel-heatmap" class="compare-tab-panel active" role="tabpanel" aria-labelledby="compare-tab-heatmap">
                 <p id="compare-metric-note" class="muted-note">
                     Heatmap colors are normalized by endpoint so endpoints with different units and scales can be compared visually.

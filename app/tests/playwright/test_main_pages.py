@@ -1,4 +1,5 @@
 import os
+import re
 
 import pytest
 from playwright.sync_api import expect
@@ -45,10 +46,10 @@ def wait_for_heatmap_state_change(page, previous_state):
 @pytest.mark.parametrize(
     ("path", "heading"),
     [
-        ("/", "PrecisionTox phenotype dashboard"),
-        ("/explore/", "Explore Endpoints"),
-        ("/compare/", "Compare Endpoints"),
-        ("/experiments/", "Experiment Information"),
+        ("/", "Phenotype Overview"),
+        ("/explore/", "Single-Endpoint View"),
+        ("/compare/", "Multi-Endpoint View"),
+        ("/experiments/", "Experiment Records"),
     ],
 )
 
@@ -61,22 +62,29 @@ def test_main_pages_render(page, path, heading):
 
 def test_navbar(page):
     page.goto(f"{BASE_URL}/", wait_until="domcontentloaded")
- 
-    page.get_by_role("link", name="Explore", exact=True).click()
+
+    def open_phenotype_menu():
+        page.get_by_role("button", name="Phenotype Data").click()
+
+    open_phenotype_menu()
+    page.get_by_role("menuitem", name=re.compile(r"^Single-Endpoint View")).click()
     expect(page).to_have_url(f"{BASE_URL}/explore/")
-    expect(page.get_by_role("heading", name="Explore Endpoints")).to_be_visible()
+    expect(page.get_by_role("heading", name="Single-Endpoint View")).to_be_visible()
 
-    page.get_by_role("link", name="Compare", exact=True).click()
+    open_phenotype_menu()
+    page.get_by_role("menuitem", name=re.compile(r"^Multi-Endpoint View")).click()
     expect(page).to_have_url(f"{BASE_URL}/compare/")
-    expect(page.get_by_role("heading", name="Compare Endpoints")).to_be_visible()
+    expect(page.get_by_role("heading", name="Multi-Endpoint View")).to_be_visible()
 
-    page.get_by_role("link", name="Experiments", exact=True).click()
+    open_phenotype_menu()
+    page.get_by_role("menuitem", name=re.compile(r"^Experiment Records")).click()
     expect(page).to_have_url(f"{BASE_URL}/experiments/")
-    expect(page.get_by_role("heading", name="Experiment Information")).to_be_visible()
+    expect(page.get_by_role("heading", name="Experiment Records")).to_be_visible()
 
-    page.get_by_role("link", name="Home", exact=True).click()
+    open_phenotype_menu()
+    page.get_by_role("menuitem", name=re.compile(r"^Overview")).click()
     expect(page).to_have_url(f"{BASE_URL}/")
-    expect(page.get_by_role("heading", name="PrecisionTox phenotype dashboard")).to_be_visible()
+    expect(page.get_by_role("heading", name="Phenotype Overview")).to_be_visible()
 
 
 def test_explore_options_selectors(page):

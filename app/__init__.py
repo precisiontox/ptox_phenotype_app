@@ -18,6 +18,10 @@ def create_app():
     
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
+    @app.context_processor
+    def inject_dex_base_url():
+        return {"dex_base_url": app.config["DEX_BASE_URL"]}
+
     app.register_blueprint(main_bp)
     app.register_blueprint(experiments_bp, url_prefix="/experiments")
     app.register_blueprint(compare_bp, url_prefix="/compare")
