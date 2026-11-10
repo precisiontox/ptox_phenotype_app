@@ -2,38 +2,56 @@
 
 {% block content %}
 
-<div class="panel hero-block">
-    <div>
-        <h1 class="page-title">Phenotype Overview</h1>
+{% set n_control = control_summary.n_control_conditions %}
+{% set n_treatment = control_summary.n_treatment_conditions %}
+{% set n_aggregated = aggregated_summary.n_aggregated_experiments %}
+{% set n_non_aggregated = aggregated_summary.n_non_aggregated_experiments %}
+
+<section class="panel hero overview-hero">
+    <div class="overview-intro">
+        <h1 class="page-title">Phenotype Data Overview</h1>
         <p class="page-subtitle">
             Overview of phenotype data coverage across organisms, endpoints and chemicals.
         </p>
     </div>
 
-    <div class="quick-links">
-        <a class="quick-link-card" href="{{ url_for('experiments.list_experiments') }}">
-            <div class="quick-link-title">Experiment Records</div>
-            <div class="quick-link-text">Browse experiment metadata, conditions and batch-level summaries.</div>
+    <nav class="overview-views" aria-label="Phenotype views">
+        <span class="kicker">Explore the data</span>
+        <a class="view-link" href="{{ url_for('explore.index') }}">
+            <span class="view-link-icon view-link-icon-blue"><i class="fa-solid fa-chart-column" aria-hidden="true"></i></span>
+            <span class="view-link-body">
+                <span class="view-link-title">Single-Endpoint View</span>
+                <span class="view-link-text">Distributions, chemical ranking and dose–response curves for one endpoint.</span>
+            </span>
+            <i class="fa-solid fa-chevron-right view-link-arrow" aria-hidden="true"></i>
         </a>
-        <a class="quick-link-card" href="{{ url_for('explore.index') }}">
-            <div class="quick-link-title">Single-Endpoint View</div>
-            <div class="quick-link-text">Inspect endpoint distributions, dose–response curves and raw records.</div>
+        <a class="view-link" href="{{ url_for('compare.heatmap') }}">
+            <span class="view-link-icon view-link-icon-amber"><i class="fa-solid fa-table-cells" aria-hidden="true"></i></span>
+            <span class="view-link-body">
+                <span class="view-link-title">Multi-Endpoint View</span>
+                <span class="view-link-text">Compare chemicals across endpoints with clustered heatmaps and PCA.</span>
+            </span>
+            <i class="fa-solid fa-chevron-right view-link-arrow" aria-hidden="true"></i>
         </a>
-        <a class="quick-link-card" href="{{ url_for('compare.heatmap') }}">
-            <div class="quick-link-title">Multi-Endpoint View</div>
-            <div class="quick-link-text">Compare chemicals across endpoints with clustered heatmaps.</div>
+        <a class="view-link" href="{{ url_for('experiments.list_experiments') }}">
+            <span class="view-link-icon view-link-icon-green"><i class="fa-solid fa-table-list" aria-hidden="true"></i></span>
+            <span class="view-link-body">
+                <span class="view-link-title">Experiment Records</span>
+                <span class="view-link-text">Experiment metadata, conditions and batch-level summaries.</span>
+            </span>
+            <i class="fa-solid fa-chevron-right view-link-arrow" aria-hidden="true"></i>
         </a>
-        <!-- <a class="quick-link-card" href="/endpoints/">
-            <div class="quick-link-title">Endpoints</div>
-            <div class="quick-link-text">View endpoint categories, endpoint metadata and ontology information.</div>
-        </a> -->
-    </div>
-</div>
+    </nav>
+</section>
 
 <section class="section-card">
     <div class="section-card-header">
-        <h2>Data overview</h2>
+        <h2>Data composition</h2>
+        <p class="section-note">
+            Size of the phenotype dataset and how its conditions and experiments break down.
+        </p>
     </div>
+
     <div class="cards cards-home">
         <div class="card card-accent-blue">
             <div class="card-label">Exposure Experiments</div>
@@ -60,35 +78,35 @@
             <div class="card-value">{{ "{:,}".format(summary.n_chemicals) }}</div>
         </div>
     </div>
+
+    <div class="breakdown-grid">
+        {% for title, left_label, left_n, right_label, right_n in [
+            ('Exposure conditions', 'Control', n_control, 'Treatment', n_treatment),
+            ('Exposure experiments', 'Aggregated', n_aggregated, 'Non-aggregated', n_non_aggregated),
+        ] %}
+        {% set total = left_n + right_n %}
+        {% set left_pct = (100 * left_n / total) if total else 0 %}
+        <div class="card breakdown-card">
+            <div class="card-label">{{ title }} by type</div>
+            <div class="breakdown-values">
+                <div>
+                    <span class="breakdown-swatch breakdown-swatch-left" aria-hidden="true"></span>{{ left_label }}
+                    <strong>{{ "{:,}".format(left_n) }}</strong>
+                    <span class="breakdown-pct">{{ "%.0f"|format(left_pct) }}%</span>
+                </div>
+                <div>
+                    <span class="breakdown-swatch breakdown-swatch-right" aria-hidden="true"></span>{{ right_label }}
+                    <strong>{{ "{:,}".format(right_n) }}</strong>
+                    <span class="breakdown-pct">{{ "%.0f"|format(100 - left_pct) if total else 0 }}%</span>
+                </div>
+            </div>
+            <div class="breakdown-bar" role="img" aria-label="{{ left_label }} {{ '%.0f'|format(left_pct) }}%, {{ right_label }} {{ '%.0f'|format(100 - left_pct) }}%">
+                <span style="width: {{ '%.2f'|format(left_pct) }}%"></span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 </section>
-
-<div class="section-card">
-    <div class="section-card-header">
-        <h2>Data composition</h2>
-        <p class="section-note">
-            Summary of condition and experiment composition in the phenotype dataset.
-        </p>
-    </div>
-
-    <div class="cards">
-        <div class="card">
-            <div class="card-label">Control conditions</div>
-            <div class="card-value">{{ "{:,}".format(control_summary.n_control_conditions) }}</div>
-        </div>
-        <div class="card">
-            <div class="card-label">Treatment conditions</div>
-            <div class="card-value">{{ "{:,}".format(control_summary.n_treatment_conditions) }}</div>
-        </div>
-        <div class="card">
-            <div class="card-label">Aggregated experiments</div>
-            <div class="card-value">{{ "{:,}".format(aggregated_summary.n_aggregated_experiments) }}</div>
-        </div>
-        <div class="card">
-            <div class="card-label">Non-aggregated experiments</div>
-            <div class="card-value">{{ "{:,}".format(aggregated_summary.n_non_aggregated_experiments) }}</div>
-        </div>
-    </div>
-</div>
 
 <div class="section-card">
     <div class="section-card-header">

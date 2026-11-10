@@ -46,7 +46,7 @@ def wait_for_heatmap_state_change(page, previous_state):
 @pytest.mark.parametrize(
     ("path", "heading"),
     [
-        ("/", "Phenotype Overview"),
+        ("/", "Phenotype Data Overview"),
         ("/explore/", "Single-Endpoint View"),
         ("/compare/", "Multi-Endpoint View"),
         ("/experiments/", "Experiment Records"),
@@ -84,7 +84,7 @@ def test_navbar(page):
     open_phenotype_menu()
     page.get_by_role("menuitem", name=re.compile(r"^Overview")).click()
     expect(page).to_have_url(f"{BASE_URL}/")
-    expect(page.get_by_role("heading", name="Phenotype Overview")).to_be_visible()
+    expect(page.get_by_role("heading", name="Phenotype Data Overview")).to_be_visible()
 
 
 def test_explore_options_selectors(page):

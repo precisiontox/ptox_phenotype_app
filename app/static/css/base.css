@@ -343,13 +343,11 @@ h2 {
   min-width: 0;
 }
 
-.hero,
-.hero-block {
+.hero {
   background: linear-gradient(135deg, #ffffff 0%, #f1f7fb 100%);
 }
 
-.hero h1,
-.hero-block h1 {
+.hero h1 {
   margin: 0;
 }
 
@@ -374,48 +372,171 @@ h2 {
   margin-top: 0.5rem;
 }
 
-/* ---- Home quick links ---- */
+/* ---- Overview hero: intro + links to the phenotype views ---- */
 
-.quick-links {
+.overview-hero {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  margin-top: 1.1rem;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 460px);
+  gap: 1.5rem;
+  align-items: start;
 }
 
-.quick-link-card {
+.kicker {
+  display: inline-block;
+  margin-bottom: 0.15rem;
+  color: var(--ptox-accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.overview-views {
   display: grid;
-  gap: 0.35rem;
-  text-decoration: none;
+  gap: 0.5rem;
+}
+
+.view-link {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.65rem 0.8rem;
   border: 1px solid var(--ptox-line);
   border-radius: 14px;
   background: #fbfdfe;
-  padding: 1rem;
   color: var(--ptox-ink);
+  text-decoration: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.quick-link-card:hover {
+.view-link:hover,
+.view-link:focus-visible {
   border-color: rgba(5, 74, 129, 0.45);
   box-shadow: 0 8px 20px rgba(5, 74, 129, 0.1);
 }
 
-.quick-link-title {
+.view-link:focus-visible {
+  outline: 2px solid var(--ptox-blue);
+  outline-offset: 2px;
+}
+
+/* Icon tile, same look as the explorer's .view-icon */
+.view-link-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid rgba(5, 74, 129, 0.18);
+  border-radius: 12px;
+  background: #edf6fb;
+  color: var(--ptox-blue);
+}
+
+.view-link-icon-amber {
+  background: #fff6ea;
+  border-color: rgba(217, 132, 36, 0.25);
+  color: #a85d11;
+}
+
+.view-link-icon-green {
+  background: #f0f8ef;
+  border-color: rgba(65, 128, 54, 0.22);
+  color: #356d2d;
+}
+
+.view-link-body {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.view-link-title {
   font-weight: 700;
   color: var(--ptox-blue);
 }
 
-.quick-link-text {
-  font-size: 0.92rem;
+.view-link-text {
+  font-size: 0.86rem;
   color: var(--ptox-muted);
-  line-height: 1.45;
+  line-height: 1.35;
+}
+
+.view-link-arrow {
+  color: var(--ptox-muted);
+  font-size: 0.8rem;
+  transition: transform 0.15s ease;
+}
+
+.view-link:hover .view-link-arrow {
+  color: var(--ptox-blue);
+  transform: translateX(2px);
+}
+
+/* ---- Data composition breakdowns ---- */
+
+.breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.breakdown-values {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  margin-bottom: 0.6rem;
+  font-size: 0.95rem;
+}
+
+.breakdown-values strong {
+  margin-left: 0.35rem;
+  font-size: 1.2rem;
+  font-weight: 650;
+}
+
+.breakdown-pct {
+  margin-left: 0.3rem;
+  color: var(--ptox-muted);
+  font-size: 0.85rem;
+}
+
+.breakdown-swatch {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  margin-right: 0.4rem;
+  border-radius: 3px;
+}
+
+.breakdown-swatch-left {
+  background: var(--ptox-blue);
+}
+
+.breakdown-swatch-right {
+  background: #9ec3dd;
+}
+
+.breakdown-bar {
+  display: flex;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: #9ec3dd;
+  overflow: hidden;
+}
+
+.breakdown-bar span {
+  background: var(--ptox-blue);
 }
 
 /* ---- Metric cards ---- */
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
   gap: 1rem;
   margin: 0.75rem 0 0;
 }
@@ -565,10 +686,11 @@ h2 {
   gap: 1rem;
 }
 
+/* No padding: Plotly sizes the plot to the box's full height, so padding would clip the x axis */
 .chart-box {
   border: 1px solid var(--ptox-line);
   border-radius: 14px;
-  padding: 0.5rem;
+  padding: 0;
   background: #fff;
   min-height: 420px;
   overflow: hidden;
@@ -978,12 +1100,6 @@ a.dt-button:hover {
 
 /* ---- Responsive ---- */
 
-@media (max-width: 1200px) {
-  .quick-links {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 1100px) {
   .chart-row,
   .dose-grid,
@@ -1002,8 +1118,8 @@ a.dt-button:hover {
   }
 }
 
-@media (max-width: 800px) {
-  .quick-links {
+@media (max-width: 900px) {
+  .overview-hero {
     grid-template-columns: 1fr;
   }
 }
