@@ -1,32 +1,37 @@
+/* Segmented pill control, same as the explorer's .view-tabs */
 .compare-tabs {
-    display: flex;
+    display: inline-flex;
+    justify-self: start;
     gap: 0.4rem;
     flex-wrap: wrap;
-    margin-left: 0.7rem;
-    margin-top: 0.75rem;
-    /* border-bottom: 1px solid #dbe5ef; */
+    padding: 0.25rem;
+    border: 1px solid var(--ptox-line);
+    border-radius: 999px;
+    background: var(--ptox-tint);
 }
 
 .compare-tab {
-    border: 1px solid #dbe5ef;
-    border-bottom: none;
-    background: #f6f9fc;
-    color: #004880;
-    font-weight: 600;
-    font-size: 1rem;
-    padding: 0.55rem 0.85rem;
-    border-radius: 8px 8px 0 0;
+    border: 0;
+    border-radius: 999px;
+    padding: 0.55rem 1.1rem;
+    background: transparent;
+    color: var(--ptox-muted);
+    font: inherit;
+    font-weight: 700;
     cursor: pointer;
 }
 
-.compare-tab.active {
-    background: #004880;
-    color: white;
-    border-color: #004880;
+.compare-tab:hover {
+    color: var(--ptox-blue);
 }
 
-.compare-tab-panel {
-    padding-top: 0.9rem;
+.compare-tab.active {
+    background: var(--ptox-blue);
+    color: #fff;
+}
+
+.compare-tab-panel > .muted-note:first-child {
+    margin-top: 0;
 }
 
 .metric-control {
@@ -58,15 +63,15 @@
 .endpoint-picker-hint {
     margin: 0.1rem 0 0;
     font-size: 0.78rem;
-    color: #5b7185;
+    color: var(--ptox-muted);
 }
 
 .endpoint-selection {
     margin-top: 0.45rem;
     padding: 0.5rem;
-    border: 1px solid #dbe5ef;
-    border-radius: 8px;
-    background: #f6f9fc;
+    border: 1px solid var(--ptox-line);
+    border-radius: 12px;
+    background: var(--ptox-subtle);
 }
 
 .endpoint-selection-header {
@@ -80,7 +85,7 @@
 #compare-endpoint-selection-count {
     font-size: 0.82rem;
     font-weight: 600;
-    color: #004880;
+    color: var(--ptox-blue);
 }
 
 .endpoint-clear-btn {
@@ -88,7 +93,7 @@
     padding: 0;
     border: none;
     background: none;
-    color: #004880;
+    color: var(--ptox-blue);
     font-size: 0.8rem;
     white-space: nowrap;
     text-decoration: underline;
@@ -113,7 +118,7 @@
     max-width: 100%;
     padding: 0.2rem 0.25rem 0.2rem 0.6rem;
     border-radius: 999px;
-    background: #004880;
+    background: var(--ptox-blue);
     color: white;
     font-size: 0.8rem;
 }

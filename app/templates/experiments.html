@@ -1,44 +1,44 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="page-title">Experiment Information</h1>
-
-<div>
-    <p>
-    This page provides a detailed overview of the experiments included in the PrecisionTox Phenotype dataset. 
-    The information is aggregated at the experiment batch level, which represents a set of experimental conditions tested together. 
-    Each batch may include multiple exposure conditions, chemicals, and phenotypic endpoints. 
-    Use the table below to explore the metadata of each experiment batch and filter by various attributes such as partner, organism, date, and more. 
+<section class="panel hero">
+    <h1 class="page-title">Experiment Records</h1>
+    <p class="page-subtitle">
+        This page provides a detailed overview of the experiments included in the PrecisionTox Phenotype dataset. The information is aggregated at the experiment batch level, which represents a set of experimental conditions tested together. Each batch may include multiple exposure conditions, chemicals, and phenotypic endpoints. Use the table below to explore the metadata of each experiment batch and filter by various attributes such as partner, organism, date, and more.
     </p>
-</div>
+</section>
 
-<h2>Data overview</h2>
-<div class="cards cards-home">
-    <div class="card card-accent-blue">
-        <div class="card-label">Exposure Experiments</div>
-        <div class="card-value" id="card-n-experiments">{{ "{:,}".format(summary.n_experiments) }}</div>
+<section class="section-card">
+    <div class="section-card-header">
+        <h2>Data overview</h2>
     </div>
-    <div class="card card-accent-blue">
-        <div class="card-label">Exposure Conditions</div>
-        <div class="card-value" id="card-n-conditions">{{ "{:,}".format(summary.n_conditions) }}</div>
+    <div class="cards cards-home">
+        <div class="card card-accent-blue">
+            <div class="card-label">Exposure Experiments</div>
+            <div class="card-value" id="card-n-experiments">{{ "{:,}".format(summary.n_experiments) }}</div>
+        </div>
+        <div class="card card-accent-blue">
+            <div class="card-label">Exposure Conditions</div>
+            <div class="card-value" id="card-n-conditions">{{ "{:,}".format(summary.n_conditions) }}</div>
+        </div>
+        <div class="card card-accent-blue">
+            <div class="card-label">Phenotype records</div>
+            <div class="card-value" id="card-n-records">{{ "{:,}".format(summary.n_records) }}</div>
+        </div>
+        <div class="card card-accent-amber">
+            <div class="card-label">Phenotypic Endpoints</div>
+            <div class="card-value" id="card-n-endpoints">{{ "{:,}".format(summary.n_effects) }}</div>
+        </div>
+        <div class="card card-accent-green">
+            <div class="card-label">Organisms covered</div>
+            <div class="card-value" id="card-n-organisms">{{ "{:,}".format(summary.n_organisms) }}</div>
+        </div>
+        <div class="card card-accent-green">
+            <div class="card-label">Chemicals covered</div>
+            <div class="card-value" id="card-n-chemicals">{{ "{:,}".format(summary.n_chemicals) }}</div>
+        </div>
     </div>
-    <div class="card card-accent-blue">
-        <div class="card-label">Phenotype records</div>
-        <div class="card-value" id="card-n-records">{{ "{:,}".format(summary.n_records) }}</div>
-    </div>
-    <div class="card card-accent-amber">
-        <div class="card-label">Phenotypic Endpoints</div>
-        <div class="card-value" id="card-n-endpoints">{{ "{:,}".format(summary.n_effects) }}</div>
-    </div>
-    <div class="card card-accent-green">
-        <div class="card-label">Organisms covered</div>
-        <div class="card-value" id="card-n-organisms">{{ "{:,}".format(summary.n_organisms) }}</div>
-    </div>
-    <div class="card card-accent-green">
-        <div class="card-label">Chemicals covered</div>
-        <div class="card-value" id="card-n-chemicals">{{ "{:,}".format(summary.n_chemicals) }}</div>
-    </div>
-</div>
+</section>
 
 <div class="section-card">
     <div class="section-card-header">

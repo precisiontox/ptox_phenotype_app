@@ -7,6 +7,9 @@ load_dotenv()
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "dev")
 
+    # Base URL of the main PTox/DEx Data Explorer, whose navbar this app shares
+    DEX_BASE_URL = os.getenv("DEX_BASE_URL", "https://dex.precisiontox.org").rstrip("/")
+
     # SSH settings
     SSH_HOST = os.getenv("SSH_HOST")
     SSH_PORT = int(os.getenv("SSH_PORT", 22))
