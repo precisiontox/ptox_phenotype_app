@@ -39,7 +39,13 @@ def index():
         SELECT
             partner_id,
             ptox_biosystem_name,
-            scientific_name,
+            CASE
+                WHEN ptox_biosystem_name = 'Drosophila_melanogaster_female' THEN 'D. melanogaster (female)'
+                WHEN ptox_biosystem_name = 'Drosophila_melanogaster_male' THEN 'D. melanogaster (male)'
+                WHEN ptox_biosystem_name = 'Homo_sapiens_HepG2_cells' THEN 'Homo sapiens (HepG2 cells)'
+                WHEN ptox_biosystem_name = 'C_elegans' THEN 'C. elegans'
+                ELSE REPLACE(ptox_biosystem_name, '_', ' ')
+            END AS biosystem_label,
             CASE
                 WHEN effect_type = 'GR signaling' THEN 'GR Signaling'
                 WHEN effect_type = 'ARE-bla agonism' THEN 'ARE-bla Agonism'
